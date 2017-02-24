@@ -348,6 +348,13 @@ function pmf_FastOddball_Numerosity( varargin )
             
             img = cat(4, imgSet1, imgSet2 );
             
+            lumVals = cell2mat(arrayfun(@(x) mean(mean(img(:,:,1,x))),1:size(img,4),'uni',false));
+            if max( abs(lumVals-lumIdx) ) > 1
+                [~, maxIdx ] = max( abs(lumVals-lumIdx) );
+                error('Luminance index (0-255) should be %0.2d, is %0.2d!',lumIdx,lumVals(maxIdx));
+            else
+            end
+            
             clear imgSet*; 
 
 			% *** assuming square wave for the time being ***
@@ -631,41 +638,68 @@ function pmf_FastOddball_Numerosity( varargin )
             img = img/max(abs(img(:))); %Scale so max signed value is 1
             img = (255-lumIdx)*img+lumIdx; % Scale into 1-255 range
         else
-            img = zeros(windowsize,windowsize);
+            img = ones(windowsize, windowsize)*lumIdx;
             meshSize = windowsize;
             meshMapping = linspace(-1,1,meshSize);
-            meshRadius(1) = round(r.*meshSize/2);
-            meshRadius(2) = round(r.*meshSize/4);
+            scaleFactor = 1;
+            meshRadius(1) = scaleFactor*r.*meshSize/2;
+            meshRadius(2) = sqrt(meshRadius(1)^2/2); % radius corresponding to half the area
+            meshRadius = 2.*round(meshRadius./2);
+            trueRadius = round(meshRadius./scaleFactor);
+            totalPix = (meshRadius(1)*2+1)^2;
+            roundError = abs((pi*meshRadius(1).^2 - (2*pi*meshRadius(2).^2)))/(pi*meshRadius(1).^2);
+            if roundError > .25;
+                error('rounding error more than 25%');
+            else
+            end
             for i=1:numerosity
                 c = coords(order(i),:) * rotmat + ((rand(1,2)-0.5)*0.4)*r + offset;
                 meshCoords(1) = findClosest(c(1),meshMapping);
                 meshCoords(2) = findClosest(c(2),meshMapping);
+                [x,y] = meshgrid(1:(meshRadius(1)*2+1),1:(meshRadius(1)*2+1));
                 if strcmp(shape,'circle')
-                    if i == 1
-                        [x,y] = meshgrid(1:meshSize,1:meshSize);
+                    if i == 1 % just generate the dot once
+                        tmpImg = ~(sqrt(((x-meshRadius(1)-1).^2 / meshRadius(1)^2) + ((y-meshRadius(1)-1).^2 / meshRadius(1)^2)) > 1);
+                        tmpImg = tmpImg + ~(sqrt(((x-meshRadius(1)-1).^2 / meshRadius(2)^2) + ((y-meshRadius(1)-1).^2 / meshRadius(2)^2)) > 1);
+                        
+                        % compute central luminance values
+                        bgPix = length(find(tmpImg == 0));
+                        ringPix = length(find(tmpImg == 1));
+                        centerPix = length(find(tmpImg == 2));                        
+                        maxLum = 256;
+                        minLum = -1;
+                        while maxLum > 255
+                            minLum = minLum+1;
+                            maxLum = round(((lumIdx * (totalPix-bgPix)) - (centerPix * minLum) )./ringPix);   % solve for ring luminance, given bg = lumIdx and center = minLum 
+                        end
+                        tmpImg = imresize(tmpImg,[trueRadius(1)*2+1,trueRadius(1)*2+1],'method','nearest');
+                        tmpImg(tmpImg == 0) = lumIdx;
+                        tmpImg(tmpImg == 1) = maxLum;
+                    	tmpImg(tmpImg == 2) = minLum;
                     else
                     end
-                    tmpImg = ~(sqrt(((x-meshCoords(1)).^2 / meshRadius(1)^2) + ((y-meshCoords(2)).^2 / meshRadius(1)^2)) > 1);
-                    tmpImg = tmpImg .* (sqrt(((x-meshCoords(1)).^2 / meshRadius(2)^2) + ((y-meshCoords(2)).^2 / meshRadius(2)^2)) > 1);
-                    img = img + tmpImg;
-                    if i == numerosity
-                        img(img == 0) = lumIdx;
-                        img(img == 1) = 255;
-                    else
-                    end
+                    imgChunk = img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1)));
+                    imgChunk(tmpImg == minLum) = minLum;
+                    imgChunk(tmpImg == maxLum) = maxLum;
+                    img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1))) = imgChunk;
                 elseif strcmp(shape,'gabor');
-                    if i == 1
-                        img = ones(windowsize, windowsize)*lumIdx;
+                    gaborSize = (trueRadius(1)*2)+1;
+                    gaborSigma = gaborSize/7;     
+                    tmpImg = gabor2d(gaborSize,gaborSize,gaborSize/360,rand*360,gaborSigma,gaborSigma);
+                    tmpImg = (tmpImg)./range(tmpImg(:)); %scale to unit range
+                    tmpImg = tmpImg - mean(tmpImg(:)); %bring mean luminance to zero        
+                    tmpImg = tmpImg/max(abs(tmpImg(:))); %Scale so max signed value is 1
+                    [~,minIdx] = min(abs([255,0]-lumIdx));
+                    if minIdx == 1
+                        tmpImg = (255-lumIdx)*tmpImg+lumIdx; % Scale into x-255 range
                     else
+                        tmpImg = -lumIdx*tmpImg+lumIdx; % Scale into 0-x range
                     end
-                    gaborSize = meshRadius(1)*2;
-                    gaborSigma = gaborSize/7;
-                    
-                    gm = gabor2d(gaborSize,gaborSize,gaborSize/360,rand*360,gaborSigma,gaborSigma);
-                    gm = (gm)./range(gm(:)); %scale to unit range
-                    gm = gm/max(abs(gm(:))); %Scale so max signed value is 1
-                    gm = (255-lumIdx)*gm+lumIdx; % Scale into 1-255 range
-                    img(meshCoords(1):(gaborSize + meshCoords(1)-1), meshCoords(2):(gaborSize + meshCoords(2)-1)) = gm;
+                    img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1))) = tmpImg;
+                else
+                end
+                if abs(mean(tmpImg(:))-lumIdx) > 1 || max(tmpImg(:)) > 255 || min(tmpImg(:)) < 0
+                    error('luminance matching failed during image generation');
                 else
                 end
             end
