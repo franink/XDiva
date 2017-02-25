@@ -586,19 +586,23 @@ function pmf_FastOddball_Numerosity( varargin )
         
         if useFill
             colordef none;      %set the color defaults to their MATLAB values
-            backcolor = [0 0 0];
-            forecolor = [.5 .5 .5   ];
+            backColor = [.5 .5 .5];
+            ringColor = [1 1 1];
+            centerColor = [0 0 0];
+
             pos=[200, 200, windowsize, windowsize]; %position of window, add 10 to size to crop later
             figure(101);
             clf;
             set(gcf,'Position',pos);
+            set(gcf,'Color',backColor);
             axes('position',[0 0 1 1 ]);
             axis([-1 1 -1 1])
             % BACKGROUND CIRCLE
             t = (0:2*pi/200:2*pi);
             circle_shape{1} = sin(t);
             circle_shape{2} = cos(t);
-            fill(circle_shape{1},circle_shape{2},backcolor)	% large background circle
+            h = fill(circle_shape{1},circle_shape{2},backColor);	% large background circle
+            set(h,'EdgeColor','none');
             %fill(square_x,square_y,backcolor)	% large background square
             axis square off image fill;
         
@@ -626,19 +630,28 @@ function pmf_FastOddball_Numerosity( varargin )
             hold on
             for i=1:numerosity
                 c = coords(order(i),:) * rotmat + ((rand(1,2)-0.5)*0.4)*r + offset;
-                fill(shapeCoords(:,1)*r+c(1),shapeCoords(:,2)*r+c(2),forecolor);
-                fill(shapeCoords(:,1)*r/2+c(1),shapeCoords(:,2)*r/2+c(2),backcolor);
+                h(1) = fill(shapeCoords(:,1)*r+c(1),shapeCoords(:,2)*r+c(2),ringColor);
+                set(h(1),'EdgeColor','none');
+                r2 = sqrt(r^2/2);
+                h(2) = fill(shapeCoords(:,1)*r2+c(1),shapeCoords(:,2)*r2+c(2),centerColor);
+                set(h(2),'EdgeColor','none');
             end
             hold off
             f = getframe(gcf);
             img = frame2im(f);
-            img = rgb2gray(img);
+            img = double(rgb2gray(img));
             img = (img)./range(img(:)); %scale to unit range
             img = img - mean(img(:)); %bring mean luminance to zero       
             img = img/max(abs(img(:))); %Scale so max signed value is 1
-            img = (255-lumIdx)*img+lumIdx; % Scale into 1-255 range
+            [~,minIdx] = min(abs([255,0]-lumIdx));
+            if minIdx == 1
+                img = (255-lumIdx)*img+lumIdx; % Scale into x-255 range
+            else
+                img = lumIdx*img+lumIdx; % Scale into 0-x range
+            end
+            img = uint8(img);
         else
-            img = ones(windowsize, windowsize)*lumIdx;
+            img = uint8(ones(windowsize, windowsize)*lumIdx);
             meshSize = windowsize;
             meshMapping = linspace(-1,1,meshSize);
             scaleFactor = 1;
@@ -693,7 +706,7 @@ function pmf_FastOddball_Numerosity( varargin )
                     if minIdx == 1
                         tmpImg = (255-lumIdx)*tmpImg+lumIdx; % Scale into x-255 range
                     else
-                        tmpImg = -lumIdx*tmpImg+lumIdx; % Scale into 0-x range
+                        tmpImg = lumIdx*tmpImg+lumIdx; % Scale into 0-x range
                     end
                     img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1))) = tmpImg;
                 else
