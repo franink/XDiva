@@ -287,8 +287,21 @@ function pmf_FastOddball_Numerosity( varargin )
             % initialize 4D .mat
             imgSet1 = zeros(windowsize,windowsize,1,nImg1,'uint8');
             imgSet2 = zeros(windowsize,windowsize,1,nImg2,'uint8');
-            mindesired = min ( [ min(numero1) min(numero2) ] ); % min and max numerosities to be generated
-            maxdesired = max ( [ max(numero1) max(numero2) ] );
+
+            % min and max numerosities to be generated
+            %ADDED THE FOLLOWING LINES FOR RANGE
+            if isempty(numRange)
+            	lowest = min ( [ min(numero1) min(numero2) ] );
+	            highest = max ( [ max(numero1) max(numero2) ] );
+            else
+            	lowest = str2double(GrabCellValue( parameters{i1}, 'NumRange' ));
+            	highest = str2double(GrabCellValue( parameters{i2}, 'NumRange' ));
+            end
+            mindesired = lowest;
+            maxdesired = highest;
+            %mindesired = min ( [ min(numero1) min(numero2) ] ); 
+            %maxdesired = max ( [ max(numero1) max(numero2) ] );
+            % END OF EDIT
 
             criticalitemsize = mindesired/maxdesired; % this is the critical item size defined by red arrows in accompanying explanatory graphs
             criticaltoa = mindesired/maxdesired;
