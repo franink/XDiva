@@ -1,7 +1,5 @@
 function pmf_FastOddball_Numerosity( varargin )
 
-	imgDir = '/Users/Shared/xDiva/StimulusImages';
-
 	% _VV_2015_0206 so that 'definitions' are always initialized
 	definitions = MakeDefinitions;
 	parameters	= {};			% always varargin{2}			initialize here for sceop
@@ -60,8 +58,10 @@ function pmf_FastOddball_Numerosity( varargin )
 			'Target Gamma'		1.8				'double'		{}
 			'Control for area'	'Yes'          'nominal'	{ 'Yes', 'No'}
             'Control for size'	'Yes'          'nominal'	{ 'Yes', 'No'}
+            'Control Range: Lowest'     '5'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+            'Control Range: Highest'	'9'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
             'Image Size'	    1.0				'double'		{}
-            'Use Fill Method'   'No'            'nominal'   { 'Yes', 'No'}
+%            'Use Fill Method'   'No'            'nominal'   { 'Yes', 'No'}
 %			'Scale'				'1x'			'nominal'	{ '1x', '2x' }				% VV's going to build this into xDiva
 % 			'V Size (deg)'		2.0				'double'		{}
 		}
@@ -70,13 +70,13 @@ function pmf_FastOddball_Numerosity( varargin )
 		% - Part '1' 'notused' allows to skip creating GUI element in particular column
 		%            'Cycle Frames' has to be 1st row
 		{
-			'Cycle Frames'		10.0		'integer'	{}
+			'Cycle Frames'		12.0		'integer'	{}
 % 			'Image Category'	'Objects'	'nominal'	{ 'Faces', 'Objects' }
 			'Contrast (rel)'	1.0			'double'	{}
 % 			'Contrast (pct)'	90.0		'double'	{}
 			'Randomization'		'Yes'		'nominal'	{ 'Yes', 'No' }
 			'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
-            'Numerosity'         '5'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+            'Numerosity'         '6'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
             'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
 			}
 
@@ -88,7 +88,7 @@ function pmf_FastOddball_Numerosity( varargin )
 			'Contrast (rel)'	1.0			'double'		{}
 			'Randomization'	'Yes'			'nominal'	{ 'Yes', 'No' }
 			'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
-            'Numerosity'         '1'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+            'Numerosity'         '5'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
             'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
 		}
 
@@ -163,45 +163,113 @@ function pmf_FastOddball_Numerosity( varargin )
 		% nFrameCycle2 = 2x or more multiple of nFrameCycle1
 		% nFrameStep / nFrameCycle2 = integer >= 1
 		% nFrameBin  / nFrameCycle2 = integer >= 1
+        
 		[ parameters, timing, videoMode ] = deal( varargin{2:4} );
         % save parameters to desktop, for debugging
         save('~/Desktop/xDiva_params.mat','parameters', 'timing','videoMode');
-		nFrameCycle1 = GrabCellValue( parameters{i1}, 'Cycle Frames' );			% double
+		
+        nFrameCycle1 = GrabCellValue( parameters{i1}, 'Cycle Frames' );			% double
 		nFrameCycle2 = GrabCellValue( parameters{i2}, 'Cycle Frames' );
 		nFrameStep	 = GrabCellValue( timing, 'nmbFramesPerStep' );
 		nFrameBin	 = GrabCellValue( timing, 'nmbFramesPerBin' );
-		parValidMsgs = {
+        
+        validationMessages = {
 			'frames/cycle1 not multiple of 2'
 			'frames/cycle1 not multiple of 4'
 			'frames/cycle2 not multiple of frames/cycle1'
 			'frames/step not multiple of frames/cycle2'
 			'frames/bin not multiple of frames/cycle2'
 			};
-		parValidFlags = true(size(parValidMsgs));
+		parValidFlags = true(size(validationMessages));
 		switch GrabCellValue( parameters{iS}, 'Modulation' )
-		case 'None'
-		case 'Square'
-			parValidFlags(1) = mod(nFrameCycle1,2) == 0;
-		case 'Sine'
-			parValidFlags(2) = mod(nFrameCycle1,4) == 0;
+            case 'None'
+            case 'Square'
+                parValidFlags(1) = mod(nFrameCycle1,2) == 0;
+            case 'Sine'
+                parValidFlags(2) = mod(nFrameCycle1,4) == 0;
 		end
 		parValidFlags(3) = nFrameCycle2 >= 2*nFrameCycle1 && mod( nFrameCycle2, nFrameCycle1 ) == 0;
 		parValidFlags(4) = nFrameStep   >=   nFrameCycle2 && mod( nFrameStep  , nFrameCycle2 ) == 0;
 		parValidFlags(5) = nFrameBin    >=   nFrameCycle2 && mod( nFrameBin   , nFrameCycle2 ) == 0;
 		parValidFlag = all( parValidFlags );
-		if parValidFlag
-			parValidMsg = { 'OK' };
-		else
-			parValidMsg = parValidMsgs(~parValidFlags);
-		end
-% 		disp( parameters )		% 1st 2 columns of definitions
-% 		disp( timing )				% nmbCoreSteps, nmbCoreBins, nmbPreludeBins, nmbFramesPerStep, nmbFramesPerBin, preludeType
-% 		disp( videoMode )			% nominalFrameRateHz, widthPx, hieghtPix, imageWidthCm, imageHeightCm, minLuminanceCd, maxLuminanceCd, meanLuminanceCd, meanLuminanceBitmapValue, bitsPerPixel, componentCount, bitsPerComponent, gammaTableCapacity, isInterlaced
-% 		disp( timing( strcmp(timing(:,1),'preludeType'), : ) )
-%     [dog,cat] = uigetfile
-% 		parValidFlag(:) = false;
-		assignin( 'base', 'output', { parValidFlag, parameters, parValidMsg } )
+		if ~parValidFlag
+			validationMessages = validationMessages(~parValidFlags);
+        else
+            validationMessages = cell(1);
+        end
+        
+        % validate and correct range options
+        numero(1) = str2double(GrabCellValue( parameters{i1}, 'Numerosity' ));
+        numero(2) = str2double(GrabCellValue( parameters{i2}, 'Numerosity' ));
+        mindesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
+        maxdesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
+        if mindesired >= maxdesired
+            controlStr = sprintf('Control Range Lowest %d must be lower than Control Range Highest %d.',mindesired,maxdesired);
+            count = 0;
+            while mindesired >= maxdesired
+                count = count +1;
+                if mindesired > 1 && mod(count,2)
+                    mindesired = mindesired - 1;
+                elseif maxdesired < 9 && ~mod(count,2)
+                    maxdesired = maxdesired + 1;
+                else
+                end
+            end
+            controlStr = sprintf('%s Control Range adjusted to %d-%d.',controlStr,mindesired,maxdesired);
+            validationMessages = AppendVMs(validationMessages,controlStr);
+            parValidFlag = false;
+        else
+        end
+        if sum(ismember(numero,mindesired:maxdesired)) ~= 2;
+            controlStr = 'Control Range must include both reference and oddball.';
+            minDiff = mindesired-numero;
+            maxDiff = maxdesired-numero;
+            if sum(minDiff > 0); % if any numero is smaller than lowest range
+                controlStr = sprintf('%s Control Range Lowest %d adjusted to %d.',controlStr,mindesired,min(numero));
+                mindesired = min(numero); % assign lowest numero
+            else
+            end
+            if sum(maxDiff < 0); % if any numero is bigger than highest range
+                controlStr = sprintf('%s Control Range Highest %d adjusted to %d.',controlStr,maxdesired,max(numero));
+                maxdesired = max(numero);
+            else
+            end
+            validationMessages = AppendVMs(validationMessages,controlStr);
+            parValidFlag = false;
+        else
+        end
+        CorrectParam('B', 'Control Range: Lowest', num2str(mindesired));
+        CorrectParam('B', 'Control Range: Highest', num2str(maxdesired));
+        
+        % validate and correct gabor options
+        %if strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes')
+        %    gaborOpts = [strcmp(GrabCellValue( parameters{i1}, 'Shape' ),'gabor'),strcmp(GrabCellValue( parameters{i2}, 'Shape' ),'gabor')];
+        %    if sum(gaborOpts)
+        %        validationMessages = AppendVMs(validationMessages,'Fill Method cannot be used with Gabors, setting "Use Fill Method" to "No"');
+        %        CorrectParam('B', 'Use Fill Method', 'No');
+        %        parValidFlag = false;
+        %    else
+        %    end
+        %else
+        %end
+        assignin( 'base', 'output', { parValidFlag, parameters, validationMessages } )
     end
+
+
+    function CorrectParam( aPart, aParam, aVal )
+        tPartLSS = ismember( { 'S' 'B' '1' '2' }, {aPart} );
+        tParamLSS = ismember( parameters{ tPartLSS }(:,1), {aParam} );
+        parameters{ tPartLSS }{ tParamLSS, 2 } = aVal;
+    end
+        
+    function validationMessages = AppendVMs(validationMessages,aStr)
+        if isempty(validationMessages{1})
+            validationMessages{1} = aStr;
+        else
+            validationMessages = cat(1,validationMessages,{aStr}); 
+        end
+    end       
+        
  
     function ValidateDefinition
 		 % Test to make sure that 'definitions' array is correct, i.e.
@@ -278,7 +346,9 @@ function pmf_FastOddball_Numerosity( varargin )
             shape2 = GrabCellValue( parameters{i2}, 'Shape' );
             areaMatch = strcmp(GrabCellValue( parameters{iB}, 'Control for area' ),'Yes');
             sizeMatch = strcmp(GrabCellValue( parameters{iB}, 'Control for size' ),'Yes');
-            useFill = strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
+            mindesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
+            maxdesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
+            useFill = false; %strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
 
             %% Initializations
             windowsize = round(min([GrabCellValue( videoMode,  'widthPix' ),GrabCellValue( videoMode,  'heightPix' )])*GrabCellValue( parameters{iB}, 'Image Size' ));
@@ -287,22 +357,7 @@ function pmf_FastOddball_Numerosity( varargin )
             % initialize 4D .mat
             imgSet1 = zeros(windowsize,windowsize,1,nImg1,'uint8');
             imgSet2 = zeros(windowsize,windowsize,1,nImg2,'uint8');
-
-            % min and max numerosities to be generated
-            %ADDED THE FOLLOWING LINES FOR RANGE
-            if isempty(numRange)
-            	lowest = min ( [ min(numero1) min(numero2) ] );
-	            highest = max ( [ max(numero1) max(numero2) ] );
-            else
-            	lowest = str2double(GrabCellValue( parameters{i1}, 'NumRange' ));
-            	highest = str2double(GrabCellValue( parameters{i2}, 'NumRange' ));
-            end
-            mindesired = lowest;
-            maxdesired = highest;
-            %mindesired = min ( [ min(numero1) min(numero2) ] ); 
-            %maxdesired = max ( [ max(numero1) max(numero2) ] );
-            % END OF EDIT
-
+            
             criticalitemsize = mindesired/maxdesired; % this is the critical item size defined by red arrows in accompanying explanatory graphs
             criticaltoa = mindesired/maxdesired;
             rmax=min( (1/sqrt(maxdesired))/2.5 , 0.3); % this is the maximum radius of a given dot
