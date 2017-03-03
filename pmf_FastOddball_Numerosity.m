@@ -56,8 +56,8 @@ function pmf_FastOddball_Numerosity( varargin )
 		{
 			'ModInfo'			1.0				'double'		{}
 			'Target Gamma'		1.8				'double'		{}
-			'Control for area'	'Yes'          'nominal'	{ 'Yes', 'No'}
-            'Control for size'	'Yes'          'nominal'	{ 'Yes', 'No'}
+			'Area covaries with # ?'	'Yes'          'nominal'	{ 'Yes', 'No'}
+            'Size covaries with # ?'	'Yes'          'nominal'	{ 'Yes', 'No'}
             'Control Range: Lowest'     '5'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
             'Control Range: Highest'	'9'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
             'Image Size'	    1.0				'double'		{}
@@ -69,7 +69,19 @@ function pmf_FastOddball_Numerosity( varargin )
 
 		% - Part '1' 'notused' allows to skip creating GUI element in particular column
 		%            'Cycle Frames' has to be 1st row
+		
 		{
+			'Cycle Frames'		60.0			'integer'	{}
+% 			'Image Category'	'Faces'		'nominal'	{ 'Faces', 'Objects' }
+			'Contrast (rel)'	1.0			'double'		{}
+			'Randomization'	'Yes'			'nominal'	{ 'Yes', 'No' }
+			'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
+            'Numerosity'         '5'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+            'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
+		}
+        
+        % - Part '2' ?optional?
+        {
 			'Cycle Frames'		12.0		'integer'	{}
 % 			'Image Category'	'Objects'	'nominal'	{ 'Faces', 'Objects' }
 			'Contrast (rel)'	1.0			'double'	{}
@@ -81,16 +93,7 @@ function pmf_FastOddball_Numerosity( varargin )
 			}
 
 
-		% - Part '2' ?optional?
-		{
-			'Cycle Frames'		60.0			'integer'	{}
-% 			'Image Category'	'Faces'		'nominal'	{ 'Faces', 'Objects' }
-			'Contrast (rel)'	1.0			'double'		{}
-			'Randomization'	'Yes'			'nominal'	{ 'Yes', 'No' }
-			'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
-            'Numerosity'         '5'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
-            'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
-		}
+
 
 		% Sweepable parameters
         % The cell array must contain as many rows as there are supported Sweep Types
@@ -129,9 +132,9 @@ function pmf_FastOddball_Numerosity( varargin )
 			'Adjustable'					true
 			'Needs Unique Stimuli'		true			% e.g. if you want to re-randomize something every trial set to true
 			'Supports Interleaving'		true
-			'Part Name'						{ 'Regular' 'Oddball'}
-			'Frame Rate Divisor'		{ 2 4 }
-			'Max Cycle Frames'			{ 30 120 }
+			'Part Name'						{ 'Oddball'  'Regular' }
+			'Frame Rate Divisor'		{ 4 2 }
+			'Max Cycle Frames'			{ 120 30 }
 			'Allow Static Part'			{ false false }
 % 			'Supported Psy Procedures'	{}				% currently not used
 % 			'Supported Psy Nulls'		{}				% currently not used
@@ -184,13 +187,13 @@ function pmf_FastOddball_Numerosity( varargin )
 		switch GrabCellValue( parameters{iS}, 'Modulation' )
             case 'None'
             case 'Square'
-                parValidFlags(1) = mod(nFrameCycle1,2) == 0;
+                parValidFlags(1) = mod(nFrameCycle2,2) == 0;
             case 'Sine'
-                parValidFlags(2) = mod(nFrameCycle1,4) == 0;
+                parValidFlags(2) = mod(nFrameCycle2,4) == 0;
 		end
-		parValidFlags(3) = nFrameCycle2 >= 2*nFrameCycle1 && mod( nFrameCycle2, nFrameCycle1 ) == 0;
-		parValidFlags(4) = nFrameStep   >=   nFrameCycle2 && mod( nFrameStep  , nFrameCycle2 ) == 0;
-		parValidFlags(5) = nFrameBin    >=   nFrameCycle2 && mod( nFrameBin   , nFrameCycle2 ) == 0;
+		parValidFlags(3) = nFrameCycle1 >= 2*nFrameCycle2 && mod( nFrameCycle1, nFrameCycle2 ) == 0;
+		parValidFlags(4) = nFrameStep   >=   nFrameCycle1 && mod( nFrameStep  , nFrameCycle1 ) == 0;
+		parValidFlags(5) = nFrameBin    >=   nFrameCycle1 && mod( nFrameBin   , nFrameCycle1 ) == 0;
 		parValidFlag = all( parValidFlags );
 		if ~parValidFlag
 			validationMessages = validationMessages(~parValidFlags);
@@ -325,14 +328,14 @@ function pmf_FastOddball_Numerosity( varargin )
 
 			nFrameCycle1 = GrabCellValue( parameters{i1}, 'Cycle Frames' );			% double
 			nFrameCycle2 = GrabCellValue( parameters{i2}, 'Cycle Frames' );
-			frameRatio21 = nFrameCycle2 / nFrameCycle1;
+			frameRatio21 = nFrameCycle1 / nFrameCycle2;
 			
 			preludeType = GrabCellValue( timing, 'preludeType' );			% 0=dynamic, 1=blank, 2=static
-			nImg2 = nFrameCore / nFrameCycle2;									% # images to show per trial
+			nImg2 = nFrameCore / nFrameCycle1;									% # images to show per trial
 			nImg1 = nImg2 * ( frameRatio21 - 1 );
             
             if preludeType == 0		% dynamic
-                nCycle2Prelude = 2 * nFramePrelude / nFrameCycle2;
+                nCycle2Prelude = 2 * nFramePrelude / nFrameCycle1;
                 nImg2 = nImg2 + nCycle2Prelude;
                 nImg1 = nImg1 + nCycle2Prelude * ( frameRatio21 - 1 );
             else
@@ -344,11 +347,13 @@ function pmf_FastOddball_Numerosity( varargin )
             numero2 = str2double(GrabCellValue( parameters{i2}, 'Numerosity' ));
             shape1 = GrabCellValue( parameters{i1}, 'Shape' );
             shape2 = GrabCellValue( parameters{i2}, 'Shape' );
-            areaMatch = strcmp(GrabCellValue( parameters{iB}, 'Control for area' ),'Yes');
-            sizeMatch = strcmp(GrabCellValue( parameters{iB}, 'Control for size' ),'Yes');
+            areaMatch = strcmp(GrabCellValue( parameters{iB}, 'Area covaries with # ?' ),'Yes');
+            sizeMatch = strcmp(GrabCellValue( parameters{iB}, 'Size covaries with # ?' ),'Yes');
             mindesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
             maxdesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
             useFill = false; %strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
+            
+            % lsabsdvaszf
 
             %% Initializations
             windowsize = round(min([GrabCellValue( videoMode,  'widthPix' ),GrabCellValue( videoMode,  'heightPix' )])*GrabCellValue( parameters{iB}, 'Image Size' ));
@@ -377,33 +382,33 @@ function pmf_FastOddball_Numerosity( varargin )
                     if sizeMatch
                         itemsize = criticalitemsize + randomreal * (1-criticalitemsize); %% range of random hab trials
                     else
-                        minitemsize = criticalitemsize * (mindesired/numero1);
-                        maxitemsize = criticalitemsize * (maxdesired/numero1);
+                        minitemsize = criticalitemsize * (mindesired/numero2);
+                        maxitemsize = criticalitemsize * (maxdesired/numero2);
                         itemsize = minitemsize + randomreal * (maxitemsize - minitemsize);
                     end
                     % control for total occupied area (toa)
                     if areaMatch
                         totaloccupiedarea = criticaltoa + randomreal * (1-criticaltoa); %% range of random hab trials
                     else
-                        mintoa = criticaltoa * (numero1/maxdesired);
-                        maxtoa = criticaltoa * (numero1/mindesired);
+                        mintoa = criticaltoa * (numero2/maxdesired);
+                        maxtoa = criticaltoa * (numero2/mindesired);
                         totaloccupiedarea = mintoa + randomreal * (maxtoa - mintoa);
                     end
                     ctr1 = ctr1 + 1;
-                    imgSet1(:,:,:,ctr1) = generate_set(numero1,shape1,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
+                    imgSet1(:,:,:,ctr1) = generate_set(numero2,shape2,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
                 else % if odd image
                     if sizeMatch
-                        itemsize = criticalitemsize * (maxdesired/numero2);
+                        itemsize = criticalitemsize * (maxdesired/numero1);
                     else
                         itemsize = criticalitemsize;
                     end
                     if areaMatch
-                        totaloccupiedarea = criticaltoa * (numero2/mindesired);
+                        totaloccupiedarea = criticaltoa * (numero1/mindesired);
                     else
                         totaloccupiedarea = criticaltoa;
                     end
                     ctr2 = ctr2 + 1;
-                    imgSet2(:,:,:,ctr2) = generate_set(numero2,shape2,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
+                    imgSet2(:,:,:,ctr2) = generate_set(numero1,shape1,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
                 end
             end
             
@@ -427,11 +432,11 @@ function pmf_FastOddball_Numerosity( varargin )
 
 			% *** assuming square wave for the time being ***
 			if preludeType == 0				% dynamic
-				iCat1 =                1:nFrameCycle1:nFrameTrial;
-				iCat0 = nFrameCycle1/2+1:nFrameCycle1:nFrameTrial;
+				iCat1 =                1:nFrameCycle2:nFrameTrial;
+				iCat0 = nFrameCycle2/2+1:nFrameCycle2:nFrameTrial;
 			else
-				iCat1 = nFramePrelude               +1:nFrameCycle1:nFrameTrial-nFramePrelude;
-				iCat0 = nFramePrelude+nFrameCycle1/2+1:nFrameCycle1:nFrameTrial-nFramePrelude;
+				iCat1 = nFramePrelude               +1:nFrameCycle2:nFrameTrial-nFramePrelude;
+				iCat0 = nFramePrelude+nFrameCycle2/2+1:nFrameCycle2:nFrameTrial-nFramePrelude;
 				if preludeType == 2			% static
 					iCat1(1) = 1;
 				elseif preludeType == 1		% blank
@@ -468,9 +473,9 @@ function pmf_FastOddball_Numerosity( varargin )
                 if imgSeq(i) ~= 0
                     if isempty(fileName)
                         fileName = sprintf('~/Desktop/numeroDemo_%s.gif',datestr(now,'yyyymmddHHMMSS'));
-                        imwrite(img(:,:,1,imgSeq(i)),fileName,'gif','LoopCount',Inf,'DelayTime',1/nFrameCycle1);
+                        imwrite(img(:,:,1,imgSeq(i)),fileName,'gif','LoopCount',Inf,'DelayTime',1/nFrameCycle2);
                     else
-                        imwrite(img(:,:,1,imgSeq(i)),fileName,'WriteMode','append','DelayTime',1/nFrameCycle1);
+                        imwrite(img(:,:,1,imgSeq(i)),fileName,'WriteMode','append','DelayTime',1/nFrameCycle2);
                     end
                 end
             end
