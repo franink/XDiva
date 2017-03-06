@@ -353,7 +353,9 @@ function pmf_FastOddball_Numerosity( varargin )
             maxdesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
             useFill = false; %strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
             
-            % lsabsdvaszf
+            % These are the extra parameters that need to be added:
+            sizeMatchRand = 1;
+            areaMatchRand = 1;
 
             %% Initializations
             windowsize = round(min([GrabCellValue( videoMode,  'widthPix' ),GrabCellValue( videoMode,  'heightPix' )])*GrabCellValue( parameters{iB}, 'Image Size' ));
@@ -371,47 +373,113 @@ function pmf_FastOddball_Numerosity( varargin )
             lumRange = linspace(GrabCellValue( videoMode,  'minLuminanceCd' ),GrabCellValue( videoMode,  'maxLuminanceCd' ),256);
             lumIdx = findClosest(GrabCellValue( parameters{iS},  'Mean Lum (cd)' ),lumRange);
             lumIdx = lumIdx - 1; % lowest values is zero, biggest is 255;
+            %% generate random order of controls if needed
+            
+            % condittions == 1: sizeMatch = 0; areaMatch = 0
+            % conditions == 2: sizeMatch = 0; areaMatch = 1
+            % conditions == 3: sizeMatch = 1, areaMatch = 0
+            % conditions == 4: sizeMatch = 1. areaMatch = 1
+            
+            NbrRefxOdd = nImg1/nImg2; %How many refeerence image per oddball
+            conditionsNbr = mod(nImg2,4); %How many cycles of 4 controls per cycle
+            conditions = repmat(linspace(1,4,4),1,conditionsNbr);
+            conditions = [conditions randi(4,1,nImg2-length(conditions))];
+            conditions = conditions(randperm(length(conditions)));
+            
+            
+            sizeMatchIdx = conditions == 3 | conditions == 4;
+            areaMatchIdx = conditions == 2 | conditions == 4;
+            
+            % Generate for each cycle of Ref-Odd values for sizeMatch and
+            % areaMatch
+            if sizeMatchRand
+                sizeMatchVec = sizeMatchIdx;
+            else
+                if sizeMatch
+                    sizeMatchVec = ones(1, nImg2);
+                else
+                    sizeMatchVec = zeros(1, nImg2);
+                end
+            end
+            
+            if areaMatchRand
+                areaMatchVec = areaMatchIdx;
+            else
+                if areaMatch
+                    areaMatchVec = ones(1, nImg2);
+                else
+                    areaMatchVec = zeros(1, nImg2);
+                end
+            end
             %% generate the stimuli
 
             ctr1 = 0;
             ctr2 = 0;
+            ctrSeq = 0;
             for i = 1:(nImg1 + nImg2)
                 if i <= nImg1 % if ref image
-                    randomreal = rand;
-                    % control for size
-                    if sizeMatch
-                        itemsize = criticalitemsize + randomreal * (1-criticalitemsize); %% range of random hab trials
-                    else
-                        minitemsize = criticalitemsize * (mindesired/numero2);
-                        maxitemsize = criticalitemsize * (maxdesired/numero2);
-                        itemsize = minitemsize + randomreal * (maxitemsize - minitemsize);
+                	if i == ctrSeq*NbrRefxOdd + 1
+                		ctrRef = 1;
+                	
+                		ctrSeq = ctrSeq + 1;
+                		if sizeMatchVec(ctrSeq)
+							minitemsize = criticalitemsize ;
+							maxitemsize = 1;
+						else
+							minitemsize = minitemsize * (mindesired/numero2);
+							maxitemsize = criticalitemsize * (maxdesired/numero2);
+                        end
+						
+						if areaMatchVec(ctrSeq)
+							mintoa = criticaltoa ;
+							maxtoa = 1;
+						else
+							mintoa = criticaltoa * (numero2/maxdesired);
+							maxtoa = criticaltoa * (numero2/mindesired);
+						end
+						
+						ParSqDim = ceil(sqrt(nImg1/nImg2)); %Dimension of 2-D parameter space to sample
+						sizeSpace = linspace(minitemsize, maxitemsize, ParSqDim+1);
+						areaSpace = linspace(mintoa, maxtoa, ParSqDim+1);
+
+						sizeRand = zeros(1,ParSqDim);
+						areaRand = zeros(1,ParSqDim);
+
+						for j = 1:length(sizeRand)
+							sizeRand(j) = sizeSpace(j) + (sizeSpace(j+1) - sizeSpace(j)) * rand;
+							areaRand(j) = areaSpace(j) + (areaSpace(j+1) - areaSpace(j)) * rand;
+						end
+						[ParSize, ParArea] = meshgrid(sizeRand,areaRand);
+						ParSize = reshape(ParSize,1,[]);
+						ParArea = reshape(ParArea,1,[]);
+						shflIdx = randperm(length(ParSize));
+						ParSize = ParSize(shflIdx);
+						ParArea = ParArea(shflIdx);
+						ParSize = ParSize(1:NbrRefxOdd);
+						ParArea = ParArea(1:NbrRefxOdd);
                     end
-                    % control for total occupied area (toa)
-                    if areaMatch
-                        totaloccupiedarea = criticaltoa + randomreal * (1-criticaltoa); %% range of random hab trials
-                    else
-                        mintoa = criticaltoa * (numero2/maxdesired);
-                        maxtoa = criticaltoa * (numero2/mindesired);
-                        totaloccupiedarea = mintoa + randomreal * (maxtoa - mintoa);
-                    end
-                    ctr1 = ctr1 + 1;
-                    imgSet1(:,:,:,ctr1) = generate_set(numero2,shape2,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
+   
+                	ctr1 = ctr1 + 1;
+               	    totaloccupiedarea = ParArea(ctrRef);
+               	    itemsize = ParSize(ctrRef);
+                   	imgSet1(:,:,:,ctr1) = generate_set(numero2,shape2,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
+                    ctrRef = ctrRef + 1;
                 else % if odd image
-                    if sizeMatch
+                	ctr2 = ctr2 + 1;
+                    if sizeMatchVec(ctr2)
                         itemsize = criticalitemsize * (maxdesired/numero1);
                     else
                         itemsize = criticalitemsize;
                     end
-                    if areaMatch
+                    if areaMatchVec(ctr2)
                         totaloccupiedarea = criticaltoa * (numero1/mindesired);
                     else
                         totaloccupiedarea = criticaltoa;
                     end
-                    ctr2 = ctr2 + 1;
                     imgSet2(:,:,:,ctr2) = generate_set(numero1,shape1,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
                 end
             end
-            
+                        
             %% COMPUTE IMAGE SEQUENCE
             
             %tmp = load('/Users/kohler/xDiva/xDiva_ImageFiles/FastOddball/Set02GrayEq_Face.mat');
