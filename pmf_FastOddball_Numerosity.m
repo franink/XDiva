@@ -58,6 +58,7 @@ function pmf_FastOddball_Numerosity( varargin )
         'Numerosity covaries with ' 'Random' 'nominal'	{ 'Area', 'Size', 'Density', 'Random'}
         'Control Range: Lowest'     '5'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
         'Control Range: Highest'	'9'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+        'Control Type'              'Full'        'nominal'	{ 'Full','Limited' }
         'Image Size'	    1.0				'double'		{}
         %            'Use Fill Method'   'No'            'nominal'   { 'Yes', 'No'}
         %			'Scale'				'1x'			'nominal'	{ '1x', '2x' }				% VV's going to build this into xDiva
@@ -130,7 +131,7 @@ function pmf_FastOddball_Numerosity( varargin )
         'Adjustable'					true
         'Needs Unique Stimuli'		true			% e.g. if you want to re-randomize something every trial set to true
         'Supports Interleaving'		true
-        'Part Name'						{ 'Oddball'  'Regular' }
+        'Part Name'						{ 'Oddball'  'Reference' }
         'Frame Rate Divisor'		{ 4 2 }
         'Max Cycle Frames'			{ 120 30 }
         'Allow Static Part'			{ false false }
@@ -242,6 +243,16 @@ function pmf_FastOddball_Numerosity( varargin )
         CorrectParam('B', 'Control Range: Lowest', num2str(mindesired));
         CorrectParam('B', 'Control Range: Highest', num2str(maxdesired));
         
+        if numero(1)/numero(2) < 0.5 && strcmp(GrabCellValue( parameters{iB}, 'Control Type' ),'Full')
+            controlStr = sprintf('Oddball %d is less than half of Reference %d.\n',numero(1),numero(2));
+            controlStr = sprintf('%sControl Type cannot be "Full" - set to "Limited".\n',controlStr);
+            controlStr = sprintf('%sNote that more complete control of non-number parameters can be achieved with different number sets\n',controlStr);
+            validationMessages = AppendVMs(validationMessages,controlStr);
+            parValidFlag = false;
+            CorrectParam('B', 'Control Type', 'Limited');
+        else
+        end
+        
         % validate and correct gabor options
         %if strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes')
         %    gaborOpts = [strcmp(GrabCellValue( parameters{i1}, 'Shape' ),'gabor'),strcmp(GrabCellValue( parameters{i2}, 'Shape' ),'gabor')];
@@ -348,6 +359,7 @@ function pmf_FastOddball_Numerosity( varargin )
             covary = find(cell2mat(cellfun(@(x) strcmp(x,GrabCellValue( parameters{iB}, 'Numerosity covaries with ' )),{ 'Area', 'Size', 'Density', 'Random'},'uni',false)));
             minDesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
             maxDesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
+            fullControl = strcmp(GrabCellValue( parameters{iB}, 'Control Type' ),'Full');
             useFill = false; %strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
             
             %% Initializations
