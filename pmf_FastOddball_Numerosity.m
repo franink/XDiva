@@ -440,12 +440,31 @@ function pmf_FastOddball_Numerosity( varargin )
                 
                 % compute the parameters for references
                 refPerCond = length(find(refCond == condLabels(c)));
+            
                 parSqDim = ceil(sqrt(refPerCond)); % Dimension of 2-D parameter space to sample
+                if ~fullControl
+                    parSqDim = ceil(sqrt(refPerCond/2))*2;
+                else
+                end
                 sizeSpace = linspace(itemSize(c,1), itemSize(c,2), parSqDim+1);
                 areaSpace = linspace(toa(c,1), toa(c,2), parSqDim+1);        
                 sizeRand = cell2mat(arrayfun(@(x) sizeSpace(x) + (sizeSpace(x+1) - sizeSpace(x))*rand,1:length(sizeSpace)-1,'uni',false));
                 areaRand = cell2mat(arrayfun(@(x) areaSpace(x) + (areaSpace(x+1) - areaSpace(x))*rand,1:length(areaSpace)-1,'uni',false));
                 [parSize, parArea] = meshgrid(sizeRand,areaRand);
+                if ~fullControl
+                    twoQuads = sign(parSize-(itemSize(c,1)+((itemSize(c,2)-itemSize(c,1))/2))) == sign(parArea-(toa(c,1)+((toa(c,2)-toa(c,1))/2)));
+                    parSize = parSize(twoQuads);
+                    parArea = parArea(twoQuads);
+%                     randomreal = rand(1,refPerCond);
+%                     tmpSizeList = zeros(1,refPerCond);
+%                     tmpAreaList = zeros(1,refPerCond);
+%                     for j = 1:length(tmpSizeList)
+%                        tmpSizeList(j) = tmpSizeList(j) + itemSize(c,1) + randomreal(j)*(itemSize(c,2)-itemSize(c,1));
+%                        tmpAreaList(j) = tmpAreaList(j) + toa(c,1) + randomreal(j)*(toa(c,2)-toa(c,1));
+%                     end
+                    
+                end
+
                 parSize = reshape(parSize,1,[]);
                 parArea = reshape(parArea,1,[]);
                 shflIdx = randperm(length(parSize));
@@ -455,7 +474,10 @@ function pmf_FastOddball_Numerosity( varargin )
                 parArea = parArea(1:refPerCond);
                 imgSizeList(refCond == condLabels(c)) = parSize;
                 imgAreaList(refCond == condLabels(c)) = parArea;
-                
+%                 if ~fullControl
+%                    imgSizeList(refCond == condLabels(c)) = tmpSizeList;
+%                    imgAreaList(refCond == condLabels(c)) = tmpAreaList;
+%                 end
                 % compute the parameters for oddball
                 imgSizeList(oddCond == condLabels(c)) = itemSize(c,3);
                 imgAreaList(oddCond == condLabels(c)) = toa(c,3);
