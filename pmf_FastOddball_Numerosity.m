@@ -395,7 +395,7 @@ function pmf_FastOddball_Numerosity( varargin )
             if nCond > 1
                 nReps = floor(nImgOdd/nCond);
                 conditions = repmat(condLabels,1,nReps);
-                conditions = [conditions condLabels(randi(nCond,1,length(conditions)-nImgOdd))]; % randomly add any additional necessary conditions
+                conditions = [conditions condLabels(randi(nCond,1,nImgOdd-length(conditions)))]; % randomly add any additional necessary conditions
                 conditions = conditions(randperm(length(conditions))); % randomize condition order
             else
                 conditions = ones(1,nImgOdd)*condLabels;
