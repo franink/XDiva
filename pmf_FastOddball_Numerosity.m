@@ -1,101 +1,99 @@
 function pmf_FastOddball_Numerosity( varargin )
+    % _VV_2015_0206 so that 'definitions' are always initialized
+    definitions = MakeDefinitions;
+    parameters	= {};			% always varargin{2}			initialize here for sceop
+    timing		= {};			% always varargin{3}
+    videoMode	= {};			% always varargin{4}
+    iS = 1;		% indices of parts S,B,1,2 in definitions cell array
+    iB = 2;
+    i1 = 3;
+    i2 = 4;
+    iSweep = 5;
+    iMod   = 6;
+    % 	iAux   = 7;
 
-	% _VV_2015_0206 so that 'definitions' are always initialized
-	definitions = MakeDefinitions;
-	parameters	= {};			% always varargin{2}			initialize here for sceop
-	timing		= {};			% always varargin{3}
-	videoMode	= {};			% always varargin{4}
-	iS = 1;		% indices of parts S,B,1,2 in definitions cell array
-	iB = 2;
-	i1 = 3;
-	i2 = 4;
-	iSweep = 5;
-	iMod   = 6;
-% 	iAux   = 7;
+    if nargin == 0
+        TestSubFunction			% does xDiva ever call w/o inputs or was this just for debugging?
+        % 		error('No input')
+    elseif ismember( varargin{1}, { 'GetDefinitions', 'ValidateParameters', 'MakeMovie', 'ValidateDefinition', 'TestSubFunction' } )
+        eval( varargin{1} )		% feval throws 'Undefined function or variable' error.  need to suppress output?
+    end
 
-	if nargin == 0
-		TestSubFunction			% does xDiva ever call w/o inputs or was this just for debugging?
-% 		error('No input')
-	elseif ismember( varargin{1}, { 'GetDefinitions', 'ValidateParameters', 'MakeMovie', 'ValidateDefinition', 'TestSubFunction' } )
-		eval( varargin{1} )		% feval throws 'Undefined function or variable' error.  need to suppress output?
-	end
+    return
 
-	return
-
-	function rV = MakeDefinitions
-		% - currently implementing 'integer', 'double', 'nominal'
-		% - types of the cells in each parameter row
-		% - only "standard" type names can be used in the "type" fields
-		% - 'nominal' params should have
-		%     (a) at least one item
-		%		(b) value within the size of the array
-		% - all other params (so far) should have empty arrays of items
-
-		rV = { ...
-
-
-		% - Part 'S' parameters must use standard parameter names
-		% - 'Sweep Type' : at least 'Fixed' sweep type must be defined
-		% - 'Modulation' : at least 'None' modulation type must be defined
-		% - 'Step Type'  : at least 'Lin Stair' type must be defined,
-		%                  first 4 step types are reserved, custom step types can only be added after them
-		{
-			'View Dist (cm)'	57.0		'double'		{}
-			'Mean Lum (cd)'		50.0		'double'		{}
-%			'Fix Point'			 1.0		'double'		{}	% 2016.07.22 changed to 'nominal'
-			'Fix Point'			'None'		'nominal'	{ 'None', 'Cross', 'Up Cue', 'Down Cue', 'Left Cue', 'Right Cue', 'Nonius', 'Block A', 'Block B', 'Fancy' }
-			'Sweep Type'		'Fixed'		'nominal'	{ 'Fixed', 'Contrast' }
-			'Step Type'			'Lin Stair'	'nominal'	{ 'Lin Stair', 'Log Stair', 'Lin Sin', 'Log Sin' }
-			'Sweep Start'		 0.0		'double'		{}
-			'Sweep End'			 1.0		'double'		{}
-			'Modulation'		'None'		'nominal'	{ 'None', 'Square', 'Sine' }
-		}
-
-
-		% - Part 'B' definition cell must be defined (at least as an empty array)
-		{
-			'ModInfo'			1.0				'double'		{}
-			'Target Gamma'		1.8				'double'		{}
-			'Area covaries with # ?'	'Yes'          'nominal'	{ 'Yes', 'No'}
-            'Size covaries with # ?'	'Yes'          'nominal'	{ 'Yes', 'No'}
-            'Control Range: Lowest'     '5'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
-            'Control Range: Highest'	'9'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
-            'Image Size'	    1.0				'double'		{}
-%            'Use Fill Method'   'No'            'nominal'   { 'Yes', 'No'}
-%			'Scale'				'1x'			'nominal'	{ '1x', '2x' }				% VV's going to build this into xDiva
-% 			'V Size (deg)'		2.0				'double'		{}
-		}
-
-
-		% - Part '1' 'notused' allows to skip creating GUI element in particular column
-		%            'Cycle Frames' has to be 1st row
-		
-		{
-			'Cycle Frames'		60.0			'integer'	{}
-% 			'Image Category'	'Faces'		'nominal'	{ 'Faces', 'Objects' }
-			'Contrast (rel)'	1.0			'double'		{}
-			'Randomization'	'Yes'			'nominal'	{ 'Yes', 'No' }
-			'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
-            'Numerosity'         '5'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
-            'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
-		}
+    function rV = MakeDefinitions
+        % - currently implementing 'integer', 'double', 'nominal'
+        % - types of the cells in each parameter row
+        % - only "standard" type names can be used in the "type" fields
+        % - 'nominal' params should have
+        %     (a) at least one item
+        %		(b) value within the size of the array
+        % - all other params (so far) should have empty arrays of items
+        
+        rV = { ...
+            
+        
+        % - Part 'S' parameters must use standard parameter names
+        % - 'Sweep Type' : at least 'Fixed' sweep type must be defined
+        % - 'Modulation' : at least 'None' modulation type must be defined
+        % - 'Step Type'  : at least 'Lin Stair' type must be defined,
+        %                  first 4 step types are reserved, custom step types can only be added after them
+        {
+        'View Dist (cm)'	57.0		'double'		{}
+        'Mean Lum (cd)'		50.0		'double'		{}
+        %			'Fix Point'			 1.0		'double'		{}	% 2016.07.22 changed to 'nominal'
+        'Fix Point'			'None'		'nominal'	{ 'None', 'Cross', 'Up Cue', 'Down Cue', 'Left Cue', 'Right Cue', 'Nonius', 'Block A', 'Block B', 'Fancy' }
+        'Sweep Type'		'Fixed'		'nominal'	{ 'Fixed', 'Contrast' }
+        'Step Type'			'Lin Stair'	'nominal'	{ 'Lin Stair', 'Log Stair', 'Lin Sin', 'Log Sin' }
+        'Sweep Start'		 0.0		'double'		{}
+        'Sweep End'			 1.0		'double'		{}
+        'Modulation'		'None'		'nominal'	{ 'None', 'Square', 'Sine' }
+        }
+        
+        
+        % - Part 'B' definition cell must be defined (at least as an empty array)
+        {
+        'ModInfo'			1.0				'double'		{}
+        'Target Gamma'		1.8				'double'		{}
+        'Numerosity covaries with ' 'Random' 'nominal'	{ 'Area', 'Size', 'Density', 'Random'}
+        'Control Range: Lowest'     '5'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+        'Control Range: Highest'	'9'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+        'Image Size'	    1.0				'double'		{}
+        %            'Use Fill Method'   'No'            'nominal'   { 'Yes', 'No'}
+        %			'Scale'				'1x'			'nominal'	{ '1x', '2x' }				% VV's going to build this into xDiva
+        % 			'V Size (deg)'		2.0				'double'		{}
+        }
+        
+        
+        % - Part '1' 'notused' allows to skip creating GUI element in particular column
+        %            'Cycle Frames' has to be 1st row
+        
+        {
+        'Cycle Frames'		60.0			'integer'	{}
+        % 			'Image Category'	'Faces'		'nominal'	{ 'Faces', 'Objects' }
+        'Contrast (rel)'	1.0			'double'		{}
+        'Randomization'	'Yes'			'nominal'	{ 'Yes', 'No' }
+        'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
+        'Numerosity'         '5'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+        'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
+        }
         
         % - Part '2' ?optional?
         {
-			'Cycle Frames'		12.0		'integer'	{}
-% 			'Image Category'	'Objects'	'nominal'	{ 'Faces', 'Objects' }
-			'Contrast (rel)'	1.0			'double'	{}
-% 			'Contrast (pct)'	90.0		'double'	{}
-			'Randomization'		'Yes'		'nominal'	{ 'Yes', 'No' }
-			'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
-            'Numerosity'         '6'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
-            'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
-			}
-
-
-
-
-		% Sweepable parameters
+        'Cycle Frames'		12.0		'integer'	{}
+        % 			'Image Category'	'Objects'	'nominal'	{ 'Faces', 'Objects' }
+        'Contrast (rel)'	1.0			'double'	{}
+        % 			'Contrast (pct)'	90.0		'double'	{}
+        'Randomization'		'Yes'		'nominal'	{ 'Yes', 'No' }
+        'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
+        'Numerosity'         '6'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+        'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
+        }
+        
+        
+        
+        
+        % Sweepable parameters
         % The cell array must contain as many rows as there are supported Sweep Types
         % 1st column (Sweep Types) contains Sweep Type as string
         % 2nd column (Stimulus Visiblity) contains one of the following strings,
@@ -105,43 +103,43 @@ function pmf_FastOddball_Numerosity( varargin )
         %   'decreasing' - stimulus visibility decreases
         % 3rd column contains a single-row cell array of pairs, where each pair is a single-row cell
         % array of 2 strings: { Part name, Parameter name }
-		% If sweep affects only one part, then you only need one { part, param} pair.
-		% If it affects both parts, then you need both  pairs, e.g. for "Contrast" below
+        % If sweep affects only one part, then you only need one { part, param} pair.
+        % If it affects both parts, then you need both  pairs, e.g. for "Contrast" below
         % Standard part names: 'S', 'B', '1', '2'
-		  {
-			  'Fixed'			'constant'		{}
-			  'Contrast'		'increasing'	{ { '1', 'Contrast (rel)' }, { '2', 'Contrast (rel)' } }		% everything in list gets swept
-		  }
-
-		% ModInfo information
+        {
+        'Fixed'			'constant'		{}
+        'Contrast'		'increasing'	{ { '1', 'Contrast (rel)' }, { '2', 'Contrast (rel)' } }		% everything in list gets swept
+        }
+        
+        % ModInfo information
         % The cell array must contain as many rows as there are supported Modulations
         % 1st column (Modulation) contains one of the supported Modulation typs as string
         % 2nd column contains the name of the ModInfo parameter as string
         % 3rd column (default value) contains default value of the ModInfo
         % parameter for this Modulation
-		  {
-			  'None'				'ModInfo'			 0.0
-			  'Square'			'OffLum (Cd)'		50.0
-			  'Sine'				'OffLum (Cd)'		50.0
-		  }
-
- 		% Auxiliary information.
-		% Required by xDiva, but not by Matlab Function
-		{
-			'Version'						1				% of the matlab function?
-			'Adjustable'					true
-			'Needs Unique Stimuli'		true			% e.g. if you want to re-randomize something every trial set to true
-			'Supports Interleaving'		true
-			'Part Name'						{ 'Oddball'  'Regular' }
-			'Frame Rate Divisor'		{ 4 2 }
-			'Max Cycle Frames'			{ 120 30 }
-			'Allow Static Part'			{ false false }
-% 			'Supported Psy Procedures'	{}				% currently not used
-% 			'Supported Psy Nulls'		{}				% currently not used
-		}
-
-		};
-	
+        {
+        'None'				'ModInfo'			 0.0
+        'Square'			'OffLum (Cd)'		50.0
+        'Sine'				'OffLum (Cd)'		50.0
+        }
+        
+        % Auxiliary information.
+        % Required by xDiva, but not by Matlab Function
+        {
+        'Version'						1				% of the matlab function?
+        'Adjustable'					true
+        'Needs Unique Stimuli'		true			% e.g. if you want to re-randomize something every trial set to true
+        'Supports Interleaving'		true
+        'Part Name'						{ 'Oddball'  'Regular' }
+        'Frame Rate Divisor'		{ 4 2 }
+        'Max Cycle Frames'			{ 120 30 }
+        'Allow Static Part'			{ false false }
+        % 			'Supported Psy Procedures'	{}				% currently not used
+        % 			'Supported Psy Nulls'		{}				% currently not used
+        }
+        
+        };
+    
     end
 
     function GetDefinitions
@@ -149,54 +147,54 @@ function pmf_FastOddball_Numerosity( varargin )
     end
 
     function ValidateParameters
-		% xDiva invokes Matlab Engine command:
-		% pmf_<subParadigmName>( 'ValidateParameters', parameters, timing, videoMode );
-		% "parameters" here is an input argument. Its cellarray has the same structure 
-		% as "definitions" but each parameter row has only first two elements
- 
-		% The "timing" and "videoMode" cellarrays have the same row
-		% structure with each row having a "name" and "value" elements.
-
-		% timing names from TimingRec declaration in PowerDiva.h
-		% videoMode names from VideoModeRx declaration in VxVideoMode.h
-
-
-		% nFrameCycle1 = 1x or more multiple of 2 if square wave
-		%              = 1x or more multiple of 4 if sine wave
-		% nFrameCycle2 = 2x or more multiple of nFrameCycle1
-		% nFrameStep / nFrameCycle2 = integer >= 1
-		% nFrameBin  / nFrameCycle2 = integer >= 1
+        % xDiva invokes Matlab Engine command:
+        % pmf_<subParadigmName>( 'ValidateParameters', parameters, timing, videoMode );
+        % "parameters" here is an input argument. Its cellarray has the same structure
+        % as "definitions" but each parameter row has only first two elements
         
-		[ parameters, timing, videoMode ] = deal( varargin{2:4} );
+        % The "timing" and "videoMode" cellarrays have the same row
+        % structure with each row having a "name" and "value" elements.
+        
+        % timing names from TimingRec declaration in PowerDiva.h
+        % videoMode names from VideoModeRx declaration in VxVideoMode.h
+        
+        
+        % nFrameCycle1 = 1x or more multiple of 2 if square wave
+        %              = 1x or more multiple of 4 if sine wave
+        % nFrameCycle2 = 2x or more multiple of nFrameCycle1
+        % nFrameStep / nFrameCycle2 = integer >= 1
+        % nFrameBin  / nFrameCycle2 = integer >= 1
+        
+        [ parameters, timing, videoMode ] = deal( varargin{2:4} );
         % save parameters to desktop, for debugging
         save('~/Desktop/xDiva_params.mat','parameters', 'timing','videoMode');
-		
+        
         nFrameCycle1 = GrabCellValue( parameters{i1}, 'Cycle Frames' );			% double
-		nFrameCycle2 = GrabCellValue( parameters{i2}, 'Cycle Frames' );
-		nFrameStep	 = GrabCellValue( timing, 'nmbFramesPerStep' );
-		nFrameBin	 = GrabCellValue( timing, 'nmbFramesPerBin' );
+        nFrameCycle2 = GrabCellValue( parameters{i2}, 'Cycle Frames' );
+        nFrameStep	 = GrabCellValue( timing, 'nmbFramesPerStep' );
+        nFrameBin	 = GrabCellValue( timing, 'nmbFramesPerBin' );
         
         validationMessages = {
-			'frames/cycle1 not multiple of 2'
-			'frames/cycle1 not multiple of 4'
-			'frames/cycle2 not multiple of frames/cycle1'
-			'frames/step not multiple of frames/cycle2'
-			'frames/bin not multiple of frames/cycle2'
-			};
-		parValidFlags = true(size(validationMessages));
-		switch GrabCellValue( parameters{iS}, 'Modulation' )
+            'frames/cycle1 not multiple of 2'
+            'frames/cycle1 not multiple of 4'
+            'frames/cycle2 not multiple of frames/cycle1'
+            'frames/step not multiple of frames/cycle2'
+            'frames/bin not multiple of frames/cycle2'
+            };
+        parValidFlags = true(size(validationMessages));
+        switch GrabCellValue( parameters{iS}, 'Modulation' )
             case 'None'
             case 'Square'
                 parValidFlags(1) = mod(nFrameCycle2,2) == 0;
             case 'Sine'
                 parValidFlags(2) = mod(nFrameCycle2,4) == 0;
-		end
-		parValidFlags(3) = nFrameCycle1 >= 2*nFrameCycle2 && mod( nFrameCycle1, nFrameCycle2 ) == 0;
-		parValidFlags(4) = nFrameStep   >=   nFrameCycle1 && mod( nFrameStep  , nFrameCycle1 ) == 0;
-		parValidFlags(5) = nFrameBin    >=   nFrameCycle1 && mod( nFrameBin   , nFrameCycle1 ) == 0;
-		parValidFlag = all( parValidFlags );
-		if ~parValidFlag
-			validationMessages = validationMessages(~parValidFlags);
+        end
+        parValidFlags(3) = nFrameCycle1 >= 2*nFrameCycle2 && mod( nFrameCycle1, nFrameCycle2 ) == 0;
+        parValidFlags(4) = nFrameStep   >=   nFrameCycle1 && mod( nFrameStep  , nFrameCycle1 ) == 0;
+        parValidFlags(5) = nFrameBin    >=   nFrameCycle1 && mod( nFrameBin   , nFrameCycle1 ) == 0;
+        parValidFlag = all( parValidFlags );
+        if ~parValidFlag
+            validationMessages = validationMessages(~parValidFlags);
         else
             validationMessages = cell(1);
         end
@@ -264,275 +262,255 @@ function pmf_FastOddball_Numerosity( varargin )
         tParamLSS = ismember( parameters{ tPartLSS }(:,1), {aParam} );
         parameters{ tPartLSS }{ tParamLSS, 2 } = aVal;
     end
-        
+
     function validationMessages = AppendVMs(validationMessages,aStr)
         if isempty(validationMessages{1})
             validationMessages{1} = aStr;
         else
-            validationMessages = cat(1,validationMessages,{aStr}); 
+            validationMessages = cat(1,validationMessages,{aStr});
         end
-    end       
-        
- 
-    function ValidateDefinition
-		 % Test to make sure that 'definitions' array is correct, i.e.
-		 % correct number of parts, structure of param items, etc. xDiva
-		 % will call this first to ensure that parameters contain no
-		 % unhandled errors.  This can also be used by Matlab user during
-		 % paradigm development.
-
-		 % Note, the 'definitions' array already exists
-
-		 % ... check definitions here ...
-		 tIsValidDefinition = true;
-
-		 assignin( 'base', 'validDefinition', tIsValidDefinition );
     end
- 
+
+
+    function ValidateDefinition
+        % Test to make sure that 'definitions' array is correct, i.e.
+        % correct number of parts, structure of param items, etc. xDiva
+        % will call this first to ensure that parameters contain no
+        % unhandled errors.  This can also be used by Matlab user during
+        % paradigm development.
+        
+        % Note, the 'definitions' array already exists
+        
+        % ... check definitions here ...
+        tIsValidDefinition = true;
+        
+        assignin( 'base', 'validDefinition', tIsValidDefinition );
+    end
+
     function MakeMovie
-		% xDiva creates variables "parameters", "timing", "videoMode" in
-		% Matlab Engine workspace and invokes Matlab Engine command:
-		
-		% pmf_<subParadigmName>( 'MakeMovie', parameters, timing, videoMode );
-		% e.g., 
-		% pmf_MyBilateralGrating( 'MakeMovie', parameters, timing, videoMode );
-		
-		% where pmf_<subParadigmName> is the name of the m-file selected by
-		% the MatlabFunction paradigm dialog "Choose" control
-
-		% Don't bother with fixation point in actual movie, xDiva will add
-		% it later.
-
-%		*** Loading precalculated images from file ***		
-%		tPFNm = '/xDiva/xDiva_Data/MatlabFiles_Gliders_Clouds/glider/pilotStimGliders20Right_F_001.mat';
-%		tD = load( tPFNm, 'images', 'imageSequence' );
-% 		assignin( 'base', 'images', tD.images );
-% 		assignin( 'base', 'imageSequence', tD.imageSequence );
-
-		try
-			[ parameters, timing, videoMode, trialNumber ] = deal( varargin{2:5} );
-
-            nFrameBin     = GrabCellValue( timing, 'nmbFramesPerBin' );
-			nFrameStep    = GrabCellValue( timing, 'nmbFramesPerStep' );
-			nBinPrelude   = GrabCellValue( timing, 'nmbPreludeBins' );
-			nStepCore     = GrabCellValue( timing, 'nmbCoreSteps' );
-			nFramePrelude = nFrameBin * nBinPrelude;
-			nFrameCore    = nFrameStep * nStepCore;
-			nFrameTrial   = nFrameCore + 2 * nFramePrelude;
-
-			modType = GrabCellValue( parameters{iS}, 'Modulation' );
-			if ~strcmp( modType, 'None' )
-				lumOff = GrabCellValue( definitions{iMod}, modType, 3 );
- 			else
-			end
-
-			nFrameCycle1 = GrabCellValue( parameters{i1}, 'Cycle Frames' );			% double
-			nFrameCycle2 = GrabCellValue( parameters{i2}, 'Cycle Frames' );
-			frameRatio21 = nFrameCycle1 / nFrameCycle2;
-			
-			preludeType = GrabCellValue( timing, 'preludeType' );			% 0=dynamic, 1=blank, 2=static
-			nImg2 = nFrameCore / nFrameCycle1;									% # images to show per trial
-			nImg1 = nImg2 * ( frameRatio21 - 1 );
+        % xDiva creates variables "parameters", "timing", "videoMode" in
+        % Matlab Engine workspace and invokes Matlab Engine command:
+        
+        % pmf_<subParadigmName>( 'MakeMovie', parameters, timing, videoMode );
+        % e.g.,
+        % pmf_MyBilateralGrating( 'MakeMovie', parameters, timing, videoMode );
+        
+        % where pmf_<subParadigmName> is the name of the m-file selected by
+        % the MatlabFunction paradigm dialog "Choose" control
+        
+        % Don't bother with fixation point in actual movie, xDiva will add
+        % it later.
+        
+        %		*** Loading precalculated images from file ***
+        %		tPFNm = '/xDiva/xDiva_Data/MatlabFiles_Gliders_Clouds/glider/pilotStimGliders20Right_F_001.mat';
+        %		tD = load( tPFNm, 'images', 'imageSequence' );
+        % 		assignin( 'base', 'images', tD.images );
+        % 		assignin( 'base', 'imageSequence', tD.imageSequence );
+        
+        try
+            [ parameters, timing, videoMode, trialNumber ] = deal( varargin{2:5} );
             
-            if preludeType == 0		% dynamic
-                nCycle2Prelude = 2 * nFramePrelude / nFrameCycle1;
-                nImg2 = nImg2 + nCycle2Prelude;
-                nImg1 = nImg1 + nCycle2Prelude * ( frameRatio21 - 1 );
+            nFrameBin     = GrabCellValue( timing, 'nmbFramesPerBin' );
+            nFrameStep    = GrabCellValue( timing, 'nmbFramesPerStep' );
+            nBinPrelude   = GrabCellValue( timing, 'nmbPreludeBins' );
+            nStepCore     = GrabCellValue( timing, 'nmbCoreSteps' );
+            nFramePrelude = nFrameBin * nBinPrelude;
+            nFrameCore    = nFrameStep * nStepCore;
+            nFrameTrial   = nFrameCore + 2 * nFramePrelude;
+            
+            modType = GrabCellValue( parameters{iS}, 'Modulation' );
+            if ~strcmp( modType, 'None' )
+                lumOff = GrabCellValue( definitions{iMod}, modType, 3 );
             else
             end
-			
+            
+            nFrameCycleOdd = GrabCellValue( parameters{i1}, 'Cycle Frames' );       % double
+            nFrameCycleRef = GrabCellValue( parameters{i2}, 'Cycle Frames' );
+            frameRatioOddRef = nFrameCycleOdd / nFrameCycleRef;
+            
+            preludeType = GrabCellValue( timing, 'preludeType' );                   % 0=dynamic, 1=blank, 2=static
+            nImgOdd = nFrameCore / nFrameCycleOdd;									% # images to show per trial
+            nImgRef = nImgOdd * ( frameRatioOddRef - 1 );
+            
+            if preludeType == 0		% dynamic
+                nCycle2Prelude = 2 * nFramePrelude / nFrameCycleOdd;
+                nImgOdd = nImgOdd + nCycle2Prelude;
+                nImgRef = nImgRef + nCycle2Prelude * ( frameRatioOddRef - 1 );
+            else
+            end
+            
             %% THIS IS  THE NUMEROSITY CODE BEGINS
             
-            numero1 = str2double(GrabCellValue( parameters{i1}, 'Numerosity' ));
-            numero2 = str2double(GrabCellValue( parameters{i2}, 'Numerosity' ));
-            shape1 = GrabCellValue( parameters{i1}, 'Shape' );
-            shape2 = GrabCellValue( parameters{i2}, 'Shape' );
-            areaMatch = strcmp(GrabCellValue( parameters{iB}, 'Area covaries with # ?' ),'Yes');
-            sizeMatch = strcmp(GrabCellValue( parameters{iB}, 'Size covaries with # ?' ),'Yes');
-            mindesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
-            maxdesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
+            numeroOdd = str2double(GrabCellValue( parameters{i1}, 'Numerosity' ));
+            numeroRef = str2double(GrabCellValue( parameters{i2}, 'Numerosity' ));
+            shapeOdd = GrabCellValue( parameters{i1}, 'Shape' );
+            shapeRef = GrabCellValue( parameters{i2}, 'Shape' );
+            covary = find(cell2mat(cellfun(@(x) strcmp(x,GrabCellValue( parameters{iB}, 'Numerosity covaries with ' )),{ 'Area', 'Size', 'Density', 'Random'},'uni',false)));
+            minDesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
+            maxDesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
             useFill = false; %strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
             
-            % These are the extra parameters that need to be added:
-            sizeMatchRand = 1;
-            areaMatchRand = 1;
-
             %% Initializations
-            windowsize = round(min([GrabCellValue( videoMode,  'widthPix' ),GrabCellValue( videoMode,  'heightPix' )])*GrabCellValue( parameters{iB}, 'Image Size' ));
+            windowSize = round(min([GrabCellValue( videoMode,  'widthPix' ),GrabCellValue( videoMode,  'heightPix' )])*GrabCellValue( parameters{iB}, 'Image Size' ));
             % Maybe move to the function call? This determines size of image currently 350x350 pixels
             
             % initialize 4D .mat
-            imgSet1 = zeros(windowsize,windowsize,1,nImg1,'uint8');
-            imgSet2 = zeros(windowsize,windowsize,1,nImg2,'uint8');
+            img = zeros(windowSize,windowSize,1,nImgRef+nImgOdd,'uint8');
             
-            criticalitemsize = mindesired/maxdesired; % this is the critical item size defined by red arrows in accompanying explanatory graphs
-            criticaltoa = mindesired/maxdesired;
-            rmax=min( (1/sqrt(maxdesired))/2.5 , 0.3); % this is the maximum radius of a given dot
+            criticalItemSize = minDesired/maxDesired; % this is the critical item size defined by red arrows in accompanying explanatory graphs
+            criticalToa = minDesired/maxDesired;
+            rMax = min( (1/sqrt(maxDesired))/2.5 , .3); % crazy code from Dehaene to compute maximum radius of dots
             
             % generate luminance values
             lumRange = linspace(GrabCellValue( videoMode,  'minLuminanceCd' ),GrabCellValue( videoMode,  'maxLuminanceCd' ),256);
             lumIdx = findClosest(GrabCellValue( parameters{iS},  'Mean Lum (cd)' ),lumRange);
             lumIdx = lumIdx - 1; % lowest values is zero, biggest is 255;
-            %% generate random order of controls if needed
             
-            % condittions == 1: sizeMatch = 0; areaMatch = 0
-            % conditions == 2: sizeMatch = 0; areaMatch = 1
-            % conditions == 3: sizeMatch = 1, areaMatch = 0
-            % conditions == 4: sizeMatch = 1. areaMatch = 1
+            %% SET UP STIMULUS PARAMETERS
+            % generate random order of controls if needed
             
-            NbrRefxOdd = nImg1/nImg2; %How many refeerence image per oddball
-            conditionsNbr = mod(nImg2,4); %How many cycles of 4 controls per cycle
-            conditions = repmat(linspace(1,4,4),1,conditionsNbr);
-            conditions = [conditions randi(4,1,nImg2-length(conditions))];
-            conditions = conditions(randperm(length(conditions)));
+            % conditions == 1: sizeCovary = 0; areaCovary = 1
+            % conditions == 2: sizeCovary = 1; areaCovary = 0
+            % conditions == 3: sizeCovary = 0, areaCovary = 0
             
-            
-            sizeMatchIdx = conditions == 3 | conditions == 4;
-            areaMatchIdx = conditions == 2 | conditions == 4;
-            
-            % Generate for each cycle of Ref-Odd values for sizeMatch and
-            % areaMatch
-            if sizeMatchRand
-                sizeMatchVec = sizeMatchIdx;
+            if covary == 4 % random
+                condLabels = [1,2,3];
             else
-                if sizeMatch
-                    sizeMatchVec = ones(1, nImg2);
-                else
-                    sizeMatchVec = zeros(1, nImg2);
-                end
+                condLabels = covary;
             end
             
-            if areaMatchRand
-                areaMatchVec = areaMatchIdx;
+            nCond = length(condLabels);
+            if nCond > 1
+                nReps = floor(nImgOdd/nCond);
+                conditions = repmat(condLabels,1,nReps);
+                conditions = [conditions condLabels(randi(nCond,1,length(conditions)-nImgOdd))]; % randomly add any additional necessary conditions
+                conditions = conditions(randperm(length(conditions))); % randomize condition order
             else
-                if areaMatch
-                    areaMatchVec = ones(1, nImg2);
-                else
-                    areaMatchVec = zeros(1, nImg2);
-                end
+                conditions = ones(1,nImgOdd)*condLabels;
             end
+            
+            refCond = reshape(repmat(conditions,frameRatioOddRef-1,1),1,nImgRef); % total number of reference conditions
+            oddCond = [zeros(1,nImgRef), conditions]; % total number of odd conditions
+            
+            % now generate the stimulus parameters
+            imgSizeList = zeros(1,nImgRef+nImgOdd);
+            imgAreaList = zeros(1,nImgRef+nImgOdd);
+            
+            % variables for size and toa values, 1 & 2 = reference, 3 = oddball
+            itemSize = zeros(length(condLabels),3);
+            toa = zeros(length(condLabels),3);
+            
+            for c = 1:length(condLabels)
+                switch condLabels(c)
+                    case 1 % area covaries, size and density does not
+                        itemSize(c,1) = criticalItemSize * (minDesired/numeroRef);
+                        itemSize(c,2) = criticalItemSize * (maxDesired/numeroRef);
+                        itemSize(c,3) = criticalItemSize;
+                        toa(c,1) = criticalToa;
+                        toa(c,2) = 1;
+                        toa(c,3) = criticalToa * (numeroOdd/minDesired);
+                    case 2 % size covaries, area and density does not
+                        itemSize(c,1) = criticalItemSize;
+                        itemSize(c,2) = 1;
+                        itemSize(c,3) = criticalItemSize * (maxDesired/numeroOdd);
+                        toa(c,1) = criticalToa * (numeroRef/maxDesired);
+                        toa(c,2) = criticalToa * (numeroRef/minDesired);
+                        toa(c,3) = criticalToa;
+                    case 3 % density covaries, area and size does not
+                        itemSize(c,1) = criticalItemSize * (minDesired/numeroRef);
+                        itemSize(c,2) = criticalItemSize * (maxDesired/numeroRef);
+                        itemSize(c,3) = criticalItemSize;
+                        toa(c,1) = criticalToa * (numeroRef/maxDesired);
+                        toa(c,2) = criticalToa * (numeroRef/minDesired);
+                        toa(c,3) = criticalToa;
+                    otherwise
+                end
+                
+                % compute the parameters for references
+                refPerCond = length(find(refCond == condLabels(c)));
+                parSqDim = ceil(sqrt(refPerCond)); % Dimension of 2-D parameter space to sample
+                sizeSpace = linspace(itemSize(c,1), itemSize(c,2), parSqDim+1);
+                areaSpace = linspace(toa(c,1), toa(c,2), parSqDim+1);        
+                sizeRand = cell2mat(arrayfun(@(x) sizeSpace(x) + (sizeSpace(x+1) - sizeSpace(x))*rand,1:length(sizeSpace)-1,'uni',false));
+                areaRand = cell2mat(arrayfun(@(x) areaSpace(x) + (areaSpace(x+1) - areaSpace(x))*rand,1:length(areaSpace)-1,'uni',false));
+                [parSize, parArea] = meshgrid(sizeRand,areaRand);
+                parSize = reshape(parSize,1,[]);
+                parArea = reshape(parArea,1,[]);
+                shflIdx = randperm(length(parSize));
+                parSize = parSize(shflIdx);
+                parArea = parArea(shflIdx);
+                parSize = parSize(1:refPerCond);
+                parArea = parArea(1:refPerCond);
+                imgSizeList(refCond == condLabels(c)) = parSize;
+                imgAreaList(refCond == condLabels(c)) = parArea;
+                
+                % compute the parameters for oddball
+                imgSizeList(oddCond == condLabels(c)) = itemSize(c,3);
+                imgAreaList(oddCond == condLabels(c)) = toa(c,3);
+            end
+            
             %% generate the stimuli
-
-            ctr1 = 0;
-            ctr2 = 0;
-            ctrSeq = 0;
-            for i = 1:(nImg1 + nImg2)
-                if i <= nImg1 % if ref image
-                	if i == ctrSeq*NbrRefxOdd + 1
-                		ctrRef = 1;
-                	
-                		ctrSeq = ctrSeq + 1;
-                		if sizeMatchVec(ctrSeq)
-							minitemsize = criticalitemsize ;
-							maxitemsize = 1;
-						else
-							minitemsize = minitemsize * (mindesired/numero2);
-							maxitemsize = criticalitemsize * (maxdesired/numero2);
-                        end
-						
-						if areaMatchVec(ctrSeq)
-							mintoa = criticaltoa ;
-							maxtoa = 1;
-						else
-							mintoa = criticaltoa * (numero2/maxdesired);
-							maxtoa = criticaltoa * (numero2/mindesired);
-						end
-						
-						ParSqDim = ceil(sqrt(nImg1/nImg2)); %Dimension of 2-D parameter space to sample
-						sizeSpace = linspace(minitemsize, maxitemsize, ParSqDim+1);
-						areaSpace = linspace(mintoa, maxtoa, ParSqDim+1);
-
-						sizeRand = zeros(1,ParSqDim);
-						areaRand = zeros(1,ParSqDim);
-
-						for j = 1:length(sizeRand)
-							sizeRand(j) = sizeSpace(j) + (sizeSpace(j+1) - sizeSpace(j)) * rand;
-							areaRand(j) = areaSpace(j) + (areaSpace(j+1) - areaSpace(j)) * rand;
-						end
-						[ParSize, ParArea] = meshgrid(sizeRand,areaRand);
-						ParSize = reshape(ParSize,1,[]);
-						ParArea = reshape(ParArea,1,[]);
-						shflIdx = randperm(length(ParSize));
-						ParSize = ParSize(shflIdx);
-						ParArea = ParArea(shflIdx);
-						ParSize = ParSize(1:NbrRefxOdd);
-						ParArea = ParArea(1:NbrRefxOdd);
-                    end
-   
-                	ctr1 = ctr1 + 1;
-               	    totaloccupiedarea = ParArea(ctrRef);
-               	    itemsize = ParSize(ctrRef);
-                   	imgSet1(:,:,:,ctr1) = generate_set(numero2,shape2,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
-                    ctrRef = ctrRef + 1;
-                else % if odd image
-                	ctr2 = ctr2 + 1;
-                    if sizeMatchVec(ctr2)
-                        itemsize = criticalitemsize * (maxdesired/numero1);
-                    else
-                        itemsize = criticalitemsize;
-                    end
-                    if areaMatchVec(ctr2)
-                        totaloccupiedarea = criticaltoa * (numero1/mindesired);
-                    else
-                        totaloccupiedarea = criticaltoa;
-                    end
-                    imgSet2(:,:,:,ctr2) = generate_set(numero1,shape1,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill);
+            
+            for i = 1:(nImgRef + nImgOdd)
+                if i <= nImgRef
+                    img(:,:,:,i) = generate_set(numeroRef,shapeRef,windowSize,rMax,imgAreaList(i),imgSizeList(i),lumIdx,useFill);
+                else
+                    img(:,:,:,i) = generate_set(numeroOdd,shapeOdd,windowSize,rMax,imgAreaList(i),imgSizeList(i),lumIdx,useFill);
                 end
             end
-                        
+            
             %% COMPUTE IMAGE SEQUENCE
             
             %tmp = load('/Users/kohler/xDiva/xDiva_ImageFiles/FastOddball/Set02GrayEq_Face.mat');
-            %imgSet1 = tmp.img;
+            %imgSetRef = tmp.img;
             %tmp = load('/Users/kohler/xDiva/xDiva_ImageFiles/FastOddball/Set02GrayEq_Face.mat');
-            %imgSet2 = tmp.img;
-            
-            img = cat(4, imgSet1, imgSet2 );
+            %imgSetOdd = tmp.img;
+            %img = cat(4, imgSetRef, imgSetOdd );
             
             lumVals = cell2mat(arrayfun(@(x) mean(mean(img(:,:,1,x))),1:size(img,4),'uni',false));
-            if max( abs(lumVals-lumIdx) ) > 1
+            if max( abs(lumVals-lumIdx) ) > 2
                 [~, maxIdx ] = max( abs(lumVals-lumIdx) );
                 error('Luminance index (0-255) should be %0.2d, is %0.2d!',lumIdx,lumVals(maxIdx));
             else
             end
             
-            clear imgSet*; 
-
-			% *** assuming square wave for the time being ***
-			if preludeType == 0				% dynamic
-				iCat1 =                1:nFrameCycle2:nFrameTrial;
-				iCat0 = nFrameCycle2/2+1:nFrameCycle2:nFrameTrial;
-			else
-				iCat1 = nFramePrelude               +1:nFrameCycle2:nFrameTrial-nFramePrelude;
-				iCat0 = nFramePrelude+nFrameCycle2/2+1:nFrameCycle2:nFrameTrial-nFramePrelude;
-				if preludeType == 2			% static
-					iCat1(1) = 1;
-				elseif preludeType == 1		% blank
-					iCat0 = [ 1, iCat0, nFrameTrial-nFramePrelude+1 ];
+            clear imgSet*;
+            
+            % *** assuming square wave for the time being ***
+            if preludeType == 0				% dynamic
+                iCat1 =                1:nFrameCycleRef:nFrameTrial;
+                iCat0 = nFrameCycleRef/2+1:nFrameCycleRef:nFrameTrial;
+            else
+                iCat1 = nFramePrelude               +1:nFrameCycleRef:nFrameTrial-nFramePrelude;
+                iCat0 = nFramePrelude+nFrameCycleRef/2+1:nFrameCycleRef:nFrameTrial-nFramePrelude;
+                if preludeType == 2			% static
+                    iCat1(1) = 1;
+                elseif preludeType == 1		% blank
+                    iCat0 = [ 1, iCat0, nFrameTrial-nFramePrelude+1 ];
                 else
-				end
+                end
             end
             % replace onsets of img1 with img2
-			iCat2 = iCat1(frameRatio21:frameRatio21:end);
-			iCat1(frameRatio21:frameRatio21:end) = [];
-			
-			
-            if ( numel(iCat1) ~= nImg1 ) || ( numel(iCat2) ~= nImg2 )
+            iCat2 = iCat1(frameRatioOddRef:frameRatioOddRef:end);
+            iCat1(frameRatioOddRef:frameRatioOddRef:end) = [];
+            
+            
+            if ( numel(iCat1) ~= nImgRef ) || ( numel(iCat2) ~= nImgOdd )
                 error('not enough images generated');
             else
             end
             
-			imgSeq = zeros( [ nFrameTrial, 1 ], 'int32' );
-			imgSeq(iCat1) = 1:nImg1;
-			imgSeq(iCat2) = (1:nImg2) + nImg1;
-			
+            imgSeq = zeros( [ nFrameTrial, 1 ], 'int32' );
+            imgSeq(iCat1) = 1:nImgRef;
+            imgSeq(iCat2) = (1:nImgOdd) + nImgRef;
+            
             squareFlag = strcmp( modType, 'Square' );
-			if squareFlag
-%				img(:,:,:,nImg) =  GrabCellValue( videoMode,  'meanLuminanceBitmapValue' );		% encoded in relative luminance from min to max?
-				lumMin = GrabCellValue( videoMode, 'minLuminanceCd' );
-				img(:,:,:,nImg1 + nImg2 + 1) = (  lumOff - lumMin ) / (  GrabCellValue( videoMode, 'maxLuminanceCd' ) - lumMin ) * 255;
+            if squareFlag
+                %				img(:,:,:,nImg) =  GrabCellValue( videoMode,  'meanLuminanceBitmapValue' );		% encoded in relative luminance from min to max?
+                lumMin = GrabCellValue( videoMode, 'minLuminanceCd' );
+                img(:,:,:,nImgRef + nImgOdd + 1) = (  lumOff - lumMin ) / (  GrabCellValue( videoMode, 'maxLuminanceCd' ) - lumMin ) * 255;
                 % off part of cycle
-                imgSeq(iCat0) = nImg1 + nImg2 + 1;
+                imgSeq(iCat0) = nImgRef + nImgOdd + 1;
             else
             end
             
@@ -541,24 +519,24 @@ function pmf_FastOddball_Numerosity( varargin )
                 if imgSeq(i) ~= 0
                     if isempty(fileName)
                         fileName = sprintf('~/Desktop/numeroDemo_%s.gif',datestr(now,'yyyymmddHHMMSS'));
-                        imwrite(img(:,:,1,imgSeq(i)),fileName,'gif','LoopCount',Inf,'DelayTime',1/nFrameCycle2);
+                        imwrite(img(:,:,1,imgSeq(i)),fileName,'gif','LoopCount',Inf,'DelayTime',1/nFrameCycleRef);
                     else
-                        imwrite(img(:,:,1,imgSeq(i)),fileName,'WriteMode','append','DelayTime',1/nFrameCycle2);
+                        imwrite(img(:,:,1,imgSeq(i)),fileName,'WriteMode','append','DelayTime',1/nFrameCycleRef);
                     end
                 end
             end
             
-			assignin( 'base', 'output', { true, img, imgSeq } )			% put local var into global space as 'output'
-		catch ME
-			disp(ME.message)
-			disp(ME.stack(1))
-% 			disp(ME.stack(end))
-			assignin( 'base', 'output', { false, zeros([1 1 1 1],'uint8'), 1 } )
-		end
-
-		return
-
-%{
+            assignin( 'base', 'output', { true, img, imgSeq } )			% put local var into global space as 'output'
+        catch ME
+            disp(ME.message)
+            disp(ME.stack(1))
+            % 			disp(ME.stack(end))
+            assignin( 'base', 'output', { false, zeros([1 1 1 1],'uint8'), 1 } )
+        end
+        
+        return
+        
+        %{
 
 %	--- Timing
 		isBlankPrelude	= ( preludeType == 1);
@@ -577,11 +555,12 @@ function pmf_FastOddball_Numerosity( varargin )
 		isSwept		= ~strcmpi( sweepType,'Fixed' );
 		sweepStart	= GrabCellValue( parameters{iS}, 'Sweep Start' );
 		sweepEnd	   = GrabCellValue( parameters{iS}, 'Sweep End' );
-%}
-
+        %}
+        
     end
-    
-    function img = generate_set(numerosity,shape,windowsize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill)
+
+
+    function img = generate_set(numerosity,shape,windowSize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill)
         %%%% This function is used to create a stimulus for numerosity experiments
         % S. Dehaene Version as of 12 May 2004
         %
@@ -589,19 +568,19 @@ function pmf_FastOddball_Numerosity( varargin )
         % Arguments:
         % -	numerosity = numerosity
         % -	shape = a standardized vector defining the shape
-        % -	windowsize = size of figure in pixels (the figure will be square) 
+        % -	windowSize = size of figure in pixels (the figure will be square)
         % -	rmax = maximum radius of each item (set to 0 if you want automatic
         % setting of this value (see below))% -	totaloccupiedarea (expressed as
-        % percentage of max, from 0 to 1)  
+        % percentage of max, from 0 to 1)
         % -	itemsize (expressed as percentage of max, from 0 to 1)
         % - luminance index of background (min: 0, max: 255).
-        % Typical example: 
+        % Typical example:
         %
         % generate_set(32,shape,350,0,1,0.2);
         %
         % creates a set of 32 shapes in a 350-pixel window with up to 100
         % positions for objects. The objects are distributed over the entire
-        % window (1=100% of windowsize), and are at 20% of the maximum allowable
+        % window (1=100% of windowSize), and are at 20% of the maximum allowable
         % size
         %
         % The shape must be defined in the following way by the calling program:
@@ -612,7 +591,7 @@ function pmf_FastOddball_Numerosity( varargin )
         % shape{1} = sin(t);
         % shape{2} = cos(t);
         %%% TRIANGLE (of same surface as circle)
-        % lambda = 2*pi/(3*sqrt(3)); 
+        % lambda = 2*pi/(3*sqrt(3));
         % shape{1} = lambda*[-sqrt(3)/2,0,sqrt(3)/2];
         % shape{2} = lambda*[-0.5,1,-0.5];
         %%% SQUARE
@@ -630,19 +609,19 @@ function pmf_FastOddball_Numerosity( varargin )
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%% specific maximum number of item locations
         maxnum = numerosity / totaloccupiedarea; %%% prepare a large enough number of locations
-
+        
         %%%% verify item size information, and set it if necessary
         if (rmax==0)
-          rmax=min( (1/sqrt(maxnum))/2.5 , 0.3); %%% this is the maximum radius of a given dot
-          s=sprintf('Maximum item radius set to automatic value: %5.3f',rmax);
-          disp(s);
+            rmax=min( (1/sqrt(maxnum))/2.5 , 0.3); %%% this is the maximum radius of a given dot
+            s=sprintf('Maximum item radius set to automatic value: %5.3f',rmax);
+            disp(s);
         end
-
+        
         %%%% precompute coordinates where dots can potentially appear
-        % the coordinates are on a square matrix, but we select only those that fall 
-        % well within the circle 
+        % the coordinates are on a square matrix, but we select only those that fall
+        % well within the circle
         % until we have enough locations to reach the maximum specified numerosity
-
+        
         ndesired = floor(maxnum*1.3)+1; %%% larger number is used so that not all locations are filled by objects
         %%%% n is the side of a square matrix of possible locations;
         n=round(sqrt(ndesired));
@@ -667,16 +646,16 @@ function pmf_FastOddball_Numerosity( varargin )
             end
         end
         % disp(n); %%% eventual number of locations chosen
-
+        
         %%% sort the coordinates as a function of distance from center
         maxcoords = size(coords,1);
         dist = sqrt( coords(:,1).*coords(:,1) + coords(:,2).*coords(:,2) );
         [d,i]=sort(dist);
         coords = coords(i,:);
-
+        
         %disp(sprintf('Side of square location matrix: %d',n));
         %disp(sprintf('Total number of locations generated: %d',maxcoords));
-
+        
         if (0)
             %%% use this code to visualize the positions where items can appear
             hold off;
@@ -691,13 +670,13 @@ function pmf_FastOddball_Numerosity( varargin )
             pause;
         end
         %%% specify the ideal size and spacing parameters;
-
+        
         %%% manipulation of the radius of dots
-
+        
         r=sqrt(itemsize)*rmax;
-
+        
         %%%% generate the stimulus
-
+        
         usedcoords=max(round(totaloccupiedarea*maxcoords),1);
         if (usedcoords<numerosity) | (usedcoords>maxcoords)
             s=sprintf('Sorry, I cannot place %d objects amongst %d positions while occupying',numerosity,maxnum);
@@ -707,19 +686,19 @@ function pmf_FastOddball_Numerosity( varargin )
             disp('You can either increase the total area, or increase maxnum');
             error('NO DIPLAY GENERATED');
         end
-
+        
         %%% scale up the display if necessary
-        alpha = sqrt((max(usedcoords,3))/maxcoords);  %%% alpha<1, indicates ratio of occupied positions 
+        alpha = sqrt((max(usedcoords,3))/maxcoords);  %%% alpha<1, indicates ratio of occupied positions
         roffset= 0.9*rand*(1-alpha);
-        % scalefact = 0.9*alpha; 
+        % scalefact = 0.9*alpha;
         scalefact = 1;
-
+        
         omega = 2*pi*rand;
         offset = [ roffset * sin(omega)  roffset * cos(omega) ];
-
+        
         %%% shuffle to select a random subset of the used coords
         order = randperm(usedcoords);
-
+        
         %%% add random rotation
         omega = 2*pi*rand;
         %        rotmat = [1 0 ; 0 1 ];
@@ -730,8 +709,8 @@ function pmf_FastOddball_Numerosity( varargin )
             backColor = [.5 .5 .5];
             ringColor = [1 1 1];
             centerColor = [0 0 0];
-
-            pos=[200, 200, windowsize, windowsize]; %position of window, add 10 to size to crop later
+            
+            pos=[200, 200, windowSize, windowSize]; %position of window, add 10 to size to crop later
             figure(101);
             clf;
             set(gcf,'Position',pos);
@@ -746,7 +725,7 @@ function pmf_FastOddball_Numerosity( varargin )
             set(h,'EdgeColor','none');
             %fill(square_x,square_y,backcolor)	% large background square
             axis square off image fill;
-        
+            
             % generate vectors of coordinates to draw the shapes
             if strcmp(shape,'circle') || strcmp(shape,'gabor');
                 % CIRCLE
@@ -767,7 +746,7 @@ function pmf_FastOddball_Numerosity( varargin )
             else
                 error('unknown shape %s',shape)
             end
-
+            
             hold on
             for i=1:numerosity
                 c = coords(order(i),:) * rotmat + ((rand(1,2)-0.5)*0.4)*r + offset;
@@ -782,7 +761,7 @@ function pmf_FastOddball_Numerosity( varargin )
             img = frame2im(f);
             img = double(rgb2gray(img));
             img = (img)./range(img(:)); %scale to unit range
-            img = img - mean(img(:)); %bring mean luminance to zero       
+            img = img - mean(img(:)); %bring mean luminance to zero
             img = img/max(abs(img(:))); %Scale so max signed value is 1
             [~,minIdx] = min(abs([255,0]-lumIdx));
             if minIdx == 1
@@ -792,8 +771,8 @@ function pmf_FastOddball_Numerosity( varargin )
             end
             img = uint8(img);
         else
-            img = uint8(ones(windowsize, windowsize)*lumIdx);
-            meshSize = windowsize;
+            img = uint8(ones(windowSize, windowSize)*lumIdx);
+            meshSize = windowSize;
             meshMapping = linspace(-1,1,meshSize);
             scaleFactor = 1;
             meshRadius(1) = scaleFactor*r.*meshSize/2;
@@ -819,17 +798,17 @@ function pmf_FastOddball_Numerosity( varargin )
                         % compute central luminance values
                         bgPix = length(find(tmpImg == 0));
                         ringPix = length(find(tmpImg == 1));
-                        centerPix = length(find(tmpImg == 2));                        
+                        centerPix = length(find(tmpImg == 2));
                         maxLum = 256;
                         minLum = -1;
                         while maxLum > 255
                             minLum = minLum+1;
-                            maxLum = round(((lumIdx * (totalPix-bgPix)) - (centerPix * minLum) )./ringPix);   % solve for ring luminance, given bg = lumIdx and center = minLum 
+                            maxLum = round(((lumIdx * (totalPix-bgPix)) - (centerPix * minLum) )./ringPix);   % solve for ring luminance, given bg = lumIdx and center = minLum
                         end
                         tmpImg = imresize(tmpImg,[trueRadius(1)*2+1,trueRadius(1)*2+1],'method','nearest');
                         tmpImg(tmpImg == 0) = lumIdx;
                         tmpImg(tmpImg == 1) = maxLum;
-                    	tmpImg(tmpImg == 2) = minLum;
+                        tmpImg(tmpImg == 2) = minLum;
                     else
                     end
                     imgChunk = img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1)));
@@ -838,10 +817,10 @@ function pmf_FastOddball_Numerosity( varargin )
                     img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1))) = imgChunk;
                 elseif strcmp(shape,'gabor');
                     gaborSize = (trueRadius(1)*2)+1;
-                    gaborSigma = gaborSize/7;     
+                    gaborSigma = gaborSize/7;
                     tmpImg = gabor2d(gaborSize,gaborSize,gaborSize/360,rand*360,gaborSigma,gaborSigma);
                     tmpImg = (tmpImg)./range(tmpImg(:)); %scale to unit range
-                    tmpImg = tmpImg - mean(tmpImg(:)); %bring mean luminance to zero        
+                    tmpImg = tmpImg - mean(tmpImg(:)); %bring mean luminance to zero
                     tmpImg = tmpImg/max(abs(tmpImg(:))); %Scale so max signed value is 1
                     [~,minIdx] = min(abs([255,0]-lumIdx));
                     if minIdx == 1
@@ -859,7 +838,7 @@ function pmf_FastOddball_Numerosity( varargin )
             end
         end
     end
-    
+
     function closestIdx = findClosest(val,list)
         [~,closestIdx] = min(abs(val-list));
     end
@@ -875,8 +854,8 @@ function pmf_FastOddball_Numerosity( varargin )
         %	>> imagesc(gabor2d( 50, 50))
         %
         % Inputs:
-        %   rows        - number of rows 
-        %   columns     - number of columns 
+        %   rows        - number of rows
+        %   columns     - number of columns
         %   freq        - frequency of the sinusoidal function in degrees (default: 360/rows)
         %   angle       - angle of rotation of the resulting 2-D array in
         %                 degrees of angle {default: 0}.
@@ -884,16 +863,16 @@ function pmf_FastOddball_Numerosity( varargin )
         %   sigmaC      - standard deviation for columns {default: columns/5}
         %   meanR       - mean for rows {default: center of the row}
         %   meanC       - mean for columns {default: center of the column}
-        %   dephase     - phase offset in  degrees {default: 0}. A complex Gabor wavelet 
-        %                 can be build using gabor2dd(...., 0) + i*gabor2d(...., 90), 
+        %   dephase     - phase offset in  degrees {default: 0}. A complex Gabor wavelet
+        %                 can be build using gabor2dd(...., 0) + i*gabor2d(...., 90),
         %                 0 and 90 being the phase offset of the real and imaginary parts
-        %   cut	        - percentage (0->1) of maximum value below which to remove values 
+        %   cut	        - percentage (0->1) of maximum value below which to remove values
         %                 from the matrix {default: 0}
         % Ouput:
         %   matrix - output gabor matrix
         %
         % Author: Arnaud Delorme, CNL / Salk Institute, 2001
-
+        
         % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
         %
         % This program is free software; you can redistribute it and/or modify
@@ -909,10 +888,10 @@ function pmf_FastOddball_Numerosity( varargin )
         % You should have received a copy of the GNU General Public License
         % along with this program; if not, write to the Free Software
         % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+        
         if nargin < 2
             help gabor2d
-            return; 
+            return;
         end;
         if nargin < 3
             freq = 360/sizeX;
@@ -939,78 +918,78 @@ function pmf_FastOddball_Numerosity( varargin )
             cut = 0;
         end;
         freq = freq/180*pi;
-
+        
         X = linspace(1, sizeX, sizeX)'* ones(1,sizeY);
         Y = ones(1,sizeX)'   		  * linspace(1, sizeY, sizeY);
         %[-sizeX/2:sizeX/2]'*ones(1,sizeX+1);
         %Y = ones(1,sizeY+1)'   *[-sizeY/2:sizeY/2];
-
+        
         rotatedmat = ((X-meanX)+i*(Y-meanY)) * exp(i*angle/180*pi);
         mat = sin(real(rotatedmat)*freq + dephase/180*pi).*exp(-0.5*(  ((X-meanX)/sigmaX).*((X-meanX)/sigmaX)...
-                        +((Y-meanY)/sigmaY).*((Y-meanY)/sigmaY)))... 
-                                /((sigmaX*sigmaY)^(0.5)*pi); 
-
+            +((Y-meanY)/sigmaY).*((Y-meanY)/sigmaY)))...
+            /((sigmaX*sigmaY)^(0.5)*pi);
+        
         if cut > 0
             maximun = max(max(mat))*cut;
             I = find(mat < maximun);
             mat(I) = 0;
         end;
     end
-    
-	function TestSubFunction
-		disp( 'inside TestSubfunction' )
-	end
 
-	function rV = GrabCellValue( cellArray, col1string, outputCol )
-		% pull out the column-2 (or other column) value of cell array row 
-		% where column-1 matches input string
-		if nargin < 3
-			outputCol = 2;
-		end
-		rV = cellArray{ strcmp( cellArray(:,1), col1string ), outputCol };
-	end
+    function TestSubFunction
+        disp( 'inside TestSubfunction' )
+    end
 
-	function rV = GetParamArray( aPartName, aParamName )
-		% *** Sin Step Types not included in logic below? ***
-		
-		% For the given part and parameter name, return an array of values
-		% corresponding to the steps in a sweep.  If the requested param is
-		% not swept, the array will contain all the same values.
+    function rV = GrabCellValue( cellArray, col1string, outputCol )
+        % pull out the column-2 (or other column) value of cell array row
+        % where column-1 matches input string
+        if nargin < 3
+            outputCol = 2;
+        end
+        rV = cellArray{ strcmp( cellArray(:,1), col1string ), outputCol };
+    end
 
-		% tSpatFreqSweepValues = GetParamArray( '1', 'Spat Freq (cpd)' );
-
-		% Here's an example of sweep type specs...
-		%
-		% definitions{end-2} =
-		% 	{
-		% 		'Fixed'         'constant'   { }
-		% 		'Contrast'      'increasing' { { '1' 'Contrast (pct)' } { '2' 'Contrast (pct)' } }
-		% 		'Spat Freq'      'increasing' { { '1' 'Spat Freq (cpd)' } { '2' 'Spat Freq (cpd)' } }
-		% 	}
-
-		tNCStps    = GrabCellValue( timing, 'nmbCoreSteps' );
-		tSweepType = GrabCellValue( parameters{iS}, 'Sweep Type' );
-
-		% we need to construct a swept array if any of the {name,value} in definitions{iSweep}{:,3}
-
-		sweepList = GrabCellValue( definitions{iSweep}, tSweepType, 3 );		% { {part,param}, {part,param} ... }
-		
-		% check for sweep
-		% determine if any definitions{iSweep}{ iRow, { {part,param}... } } match arguments aPartName, aParamName
-		partMatch  = ismember( aPartName,  cellfun( @(x)x{1}, sweepList, 'UniformOutput', false ) ); % will be false for "'Fixed' 'constant' {}"
-		paramMatch = ismember( aParamName, cellfun( @(x)x{2}, sweepList, 'UniformOutput', false ) );
-		if partMatch && paramMatch
-			tSweepStart = GrabCellValue( parameters{iS}, 'Sweep Start' );
-			tSweepEnd   = GrabCellValue( parameters{iS}, 'Sweep End' );
-			if strcmpi( GrabCellValue( parameters{iS}, 'Step Type' ), 'Lin Stair' );
-				rV = linspace( tSweepStart, tSweepEnd, tNCStps )';
-			else
-				rV = logspace( log10(tSweepStart), log10(tSweepEnd), tNCStps )';
-			end
-		else
-			rV = repmat( GrabCellValue( parameters{eval(['i',aPartName])}, aParamName ), [ tNCStps, 1 ] );
-		end
-
+    function rV = GetParamArray( aPartName, aParamName )
+        % *** Sin Step Types not included in logic below? ***
+        
+        % For the given part and parameter name, return an array of values
+        % corresponding to the steps in a sweep.  If the requested param is
+        % not swept, the array will contain all the same values.
+        
+        % tSpatFreqSweepValues = GetParamArray( '1', 'Spat Freq (cpd)' );
+        
+        % Here's an example of sweep type specs...
+        %
+        % definitions{end-2} =
+        % 	{
+        % 		'Fixed'         'constant'   { }
+        % 		'Contrast'      'increasing' { { '1' 'Contrast (pct)' } { '2' 'Contrast (pct)' } }
+        % 		'Spat Freq'      'increasing' { { '1' 'Spat Freq (cpd)' } { '2' 'Spat Freq (cpd)' } }
+        % 	}
+        
+        tNCStps    = GrabCellValue( timing, 'nmbCoreSteps' );
+        tSweepType = GrabCellValue( parameters{iS}, 'Sweep Type' );
+        
+        % we need to construct a swept array if any of the {name,value} in definitions{iSweep}{:,3}
+        
+        sweepList = GrabCellValue( definitions{iSweep}, tSweepType, 3 );		% { {part,param}, {part,param} ... }
+        
+        % check for sweep
+        % determine if any definitions{iSweep}{ iRow, { {part,param}... } } match arguments aPartName, aParamName
+        partMatch  = ismember( aPartName,  cellfun( @(x)x{1}, sweepList, 'UniformOutput', false ) ); % will be false for "'Fixed' 'constant' {}"
+        paramMatch = ismember( aParamName, cellfun( @(x)x{2}, sweepList, 'UniformOutput', false ) );
+        if partMatch && paramMatch
+            tSweepStart = GrabCellValue( parameters{iS}, 'Sweep Start' );
+            tSweepEnd   = GrabCellValue( parameters{iS}, 'Sweep End' );
+            if strcmpi( GrabCellValue( parameters{iS}, 'Step Type' ), 'Lin Stair' );
+                rV = linspace( tSweepStart, tSweepEnd, tNCStps )';
+            else
+                rV = logspace( log10(tSweepStart), log10(tSweepEnd), tNCStps )';
+            end
+        else
+            rV = repmat( GrabCellValue( parameters{eval(['i',aPartName])}, aParamName ), [ tNCStps, 1 ] );
+        end
+        
     end
 
 
