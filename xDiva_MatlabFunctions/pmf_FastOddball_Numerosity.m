@@ -172,10 +172,10 @@ function pmf_FastOddball_Numerosity( varargin )
         % save parameters to desktop, for debugging
         save('~/Desktop/xDiva_params.mat','parameters', 'timing','videoMode');
         
-        nFrameCycle1 = GrabCellValue( parameters{i1}, 'Cycle Frames' );			% double
-        nFrameCycle2 = GrabCellValue( parameters{i2}, 'Cycle Frames' );
-        nFrameStep	 = GrabCellValue( timing, 'nmbFramesPerStep' );
-        nFrameBin	 = GrabCellValue( timing, 'nmbFramesPerBin' );
+        nFrameCycle1 = xDiva.GrabCellValue( parameters{i1}, 'Cycle Frames' );			% double
+        nFrameCycle2 = xDiva.GrabCellValue( parameters{i2}, 'Cycle Frames' );
+        nFrameStep	 = xDiva.GrabCellValue( timing, 'nmbFramesPerStep' );
+        nFrameBin	 = xDiva.GrabCellValue( timing, 'nmbFramesPerBin' );
         
         validationMessages = {
             'frames/cycle1 not multiple of 2'
@@ -185,7 +185,7 @@ function pmf_FastOddball_Numerosity( varargin )
             'frames/bin not multiple of frames/cycle2'
             };
         parValidFlags = true(size(validationMessages));
-        switch GrabCellValue( parameters{iS}, 'Modulation' )
+        switch xDiva.GrabCellValue( parameters{iS}, 'Modulation' )
             case 'None'
             case 'Square'
                 parValidFlags(1) = mod(nFrameCycle2,2) == 0;
@@ -203,10 +203,10 @@ function pmf_FastOddball_Numerosity( varargin )
         end
         
         % validate and correct range options
-        numero(1) = str2double(GrabCellValue( parameters{i1}, 'Numerosity' ));
-        numero(2) = str2double(GrabCellValue( parameters{i2}, 'Numerosity' ));
-        mindesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
-        maxdesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
+        numero(1) = str2double(xDiva.GrabCellValue( parameters{i1}, 'Numerosity' ));
+        numero(2) = str2double(xDiva.GrabCellValue( parameters{i2}, 'Numerosity' ));
+        mindesired = str2double(xDiva.GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
+        maxdesired = str2double(xDiva.GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
         if mindesired >= maxdesired
             controlStr = sprintf('Control Range Lowest %d must be lower than Control Range Highest %d.',mindesired,maxdesired);
             count = 0;
@@ -245,7 +245,7 @@ function pmf_FastOddball_Numerosity( varargin )
         parameters = xDiva.ReplaceParam(parameters, 'B', 'Control Range: Lowest', num2str(mindesired));
         parameters = xDiva.ReplaceParam(parameters, 'B', 'Control Range: Highest', num2str(maxdesired));
         
-        if numero(1)/numero(2) < 0.5 && strcmp(GrabCellValue( parameters{iB}, 'Control Type' ),'Full')
+        if numero(1)/numero(2) < 0.5 && strcmp(xDiva.GrabCellValue( parameters{iB}, 'Control Type' ),'Full')
             controlStr = sprintf('Oddball %d is less than half of Reference %d.\n',numero(1),numero(2));
             controlStr = sprintf('%sControl Type cannot be "Full" - set to "Limited".\n',controlStr);
             controlStr = sprintf('%sNote that more complete control of non-number parameters can be achieved with different number sets\n',controlStr);
@@ -256,8 +256,8 @@ function pmf_FastOddball_Numerosity( varargin )
         end
         
         % validate and correct gabor options
-        %if strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes')
-        %    gaborOpts = [strcmp(GrabCellValue( parameters{i1}, 'Shape' ),'gabor'),strcmp(GrabCellValue( parameters{i2}, 'Shape' ),'gabor')];
+        %if strcmp(xDiva.GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes')
+        %    gaborOpts = [strcmp(xDiva.GrabCellValue( parameters{i1}, 'Shape' ),'gabor'),strcmp(xDiva.GrabCellValue( parameters{i2}, 'Shape' ),'gabor')];
         %    if sum(gaborOpts)
         %        validationMessages = xDiva.AppendVMs(validationMessages,'Fill Method cannot be used with Gabors, setting "Use Fill Method" to "No"');
         %        parameters = xDiva.ReplaceParam(parameters, 'B', 'Use Fill Method', 'No');
@@ -307,25 +307,25 @@ function pmf_FastOddball_Numerosity( varargin )
         %try
             [ parameters, timing, videoMode, trialNumber ] = deal( varargin{2:5} );
             
-            nFrameBin     = GrabCellValue( timing, 'nmbFramesPerBin' );
-            nFrameStep    = GrabCellValue( timing, 'nmbFramesPerStep' );
-            nBinPrelude   = GrabCellValue( timing, 'nmbPreludeBins' );
-            nStepCore     = GrabCellValue( timing, 'nmbCoreSteps' );
+            nFrameBin     = xDiva.GrabCellValue( timing, 'nmbFramesPerBin' );
+            nFrameStep    = xDiva.GrabCellValue( timing, 'nmbFramesPerStep' );
+            nBinPrelude   = xDiva.GrabCellValue( timing, 'nmbPreludeBins' );
+            nStepCore     = xDiva.GrabCellValue( timing, 'nmbCoreSteps' );
             nFramePrelude = nFrameBin * nBinPrelude;
             nFrameCore    = nFrameStep * nStepCore;
             nFrameTrial   = nFrameCore + 2 * nFramePrelude;
             
-            modType = GrabCellValue( parameters{iS}, 'Modulation' );
+            modType = xDiva.GrabCellValue( parameters{iS}, 'Modulation' );
             if ~strcmp( modType, 'None' )
-                lumOff = GrabCellValue( definitions{iMod}, modType, 3 );
+                lumOff = xDiva.GrabCellValue( definitions{iMod}, modType, 3 );
             else
             end
             
-            nFrameCycleOdd = GrabCellValue( parameters{i1}, 'Cycle Frames' );       % double
-            nFrameCycleRef = GrabCellValue( parameters{i2}, 'Cycle Frames' );
+            nFrameCycleOdd = xDiva.GrabCellValue( parameters{i1}, 'Cycle Frames' );       % double
+            nFrameCycleRef = xDiva.GrabCellValue( parameters{i2}, 'Cycle Frames' );
             frameRatioOddRef = nFrameCycleOdd / nFrameCycleRef;
             
-            preludeType = GrabCellValue( timing, 'preludeType' );                   % 0=dynamic, 1=blank, 2=static
+            preludeType = xDiva.GrabCellValue( timing, 'preludeType' );                   % 0=dynamic, 1=blank, 2=static
             nImgOdd = nFrameCore / nFrameCycleOdd;									% # images to show per trial
             nImgRef = nImgOdd * ( frameRatioOddRef - 1 );
             
@@ -338,18 +338,18 @@ function pmf_FastOddball_Numerosity( varargin )
             
             %% THIS IS  THE NUMEROSITY CODE BEGINS
             
-            numeroOdd = str2double(GrabCellValue( parameters{i1}, 'Numerosity' ));
-            numeroRef = str2double(GrabCellValue( parameters{i2}, 'Numerosity' ));
-            shapeOdd = GrabCellValue( parameters{i1}, 'Shape' );
-            shapeRef = GrabCellValue( parameters{i2}, 'Shape' );
-            covary = find(cell2mat(cellfun(@(x) strcmp(x,GrabCellValue( parameters{iB}, 'Numerosity covaries with ' )),{ 'Area', 'Size', 'Density', 'Random'},'uni',false)));
-            minDesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
-            maxDesired = str2double(GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
-            fullControl = strcmp(GrabCellValue( parameters{iB}, 'Control Type' ),'Full');
-            useFill = false; %strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
+            numeroOdd = str2double(xDiva.GrabCellValue( parameters{i1}, 'Numerosity' ));
+            numeroRef = str2double(xDiva.GrabCellValue( parameters{i2}, 'Numerosity' ));
+            shapeOdd = xDiva.GrabCellValue( parameters{i1}, 'Shape' );
+            shapeRef = xDiva.GrabCellValue( parameters{i2}, 'Shape' );
+            covary = find(cell2mat(cellfun(@(x) strcmp(x,xDiva.GrabCellValue( parameters{iB}, 'Numerosity covaries with ' )),{ 'Area', 'Size', 'Density', 'Random'},'uni',false)));
+            minDesired = str2double(xDiva.GrabCellValue( parameters{iB}, 'Control Range: Lowest' ));
+            maxDesired = str2double(xDiva.GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
+            fullControl = strcmp(xDiva.GrabCellValue( parameters{iB}, 'Control Type' ),'Full');
+            useFill = false; %strcmp(xDiva.GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
             
             %% Initializations
-            windowSize = round(min([GrabCellValue( videoMode,  'widthPix' ),GrabCellValue( videoMode,  'heightPix' )])*GrabCellValue( parameters{iB}, 'Image Size' ));
+            windowSize = round(min([xDiva.GrabCellValue( videoMode,  'widthPix' ),xDiva.GrabCellValue( videoMode,  'heightPix' )])*xDiva.GrabCellValue( parameters{iB}, 'Image Size' ));
             % Maybe move to the function call? This determines size of image currently 350x350 pixels
             
             % initialize 4D .mat
@@ -360,8 +360,8 @@ function pmf_FastOddball_Numerosity( varargin )
             rMax = min( (1/sqrt(maxDesired))/2.5 , .3); % crazy code from Dehaene to compute maximum radius of dots
             
             % generate luminance values
-            lumRange = linspace(GrabCellValue( videoMode,  'minLuminanceCd' ),GrabCellValue( videoMode,  'maxLuminanceCd' ),256);
-            lumIdx = findClosest(GrabCellValue( parameters{iS},  'Mean Lum (cd)' ),lumRange);
+            lumRange = linspace(xDiva.GrabCellValue( videoMode,  'minLuminanceCd' ),xDiva.GrabCellValue( videoMode,  'maxLuminanceCd' ),256);
+            lumIdx = findClosest(xDiva.GrabCellValue( parameters{iS},  'Mean Lum (cd)' ),lumRange);
             lumIdx = lumIdx - 1; % lowest values is zero, biggest is 255;
             
             %% SET UP STIMULUS PARAMETERS
@@ -530,9 +530,9 @@ function pmf_FastOddball_Numerosity( varargin )
             
             squareFlag = strcmp( modType, 'Square' );
             if squareFlag
-                %				img(:,:,:,nImg) =  GrabCellValue( videoMode,  'meanLuminanceBitmapValue' );		% encoded in relative luminance from min to max?
-                lumMin = GrabCellValue( videoMode, 'minLuminanceCd' );
-                img(:,:,:,nImgRef + nImgOdd + 1) = (  lumOff - lumMin ) / (  GrabCellValue( videoMode, 'maxLuminanceCd' ) - lumMin ) * 255;
+                %				img(:,:,:,nImg) =  xDiva.GrabCellValue( videoMode,  'meanLuminanceBitmapValue' );		% encoded in relative luminance from min to max?
+                lumMin = xDiva.GrabCellValue( videoMode, 'minLuminanceCd' );
+                img(:,:,:,nImgRef + nImgOdd + 1) = (  lumOff - lumMin ) / (  xDiva.GrabCellValue( videoMode, 'maxLuminanceCd' ) - lumMin ) * 255;
                 % off part of cycle
                 imgSeq(iCat0) = nImgRef + nImgOdd + 1;
             else
@@ -571,18 +571,18 @@ function pmf_FastOddball_Numerosity( varargin )
 
 
 %	--- Video Mode
- 		wPix = GrabCellValue( videoMode,  'widthPix' );
-		hPix = GrabCellValue( videoMode,  'heightPix' );
-		wCm  = GrabCellValue( videoMode,  'imageWidthCm' );
-		hCm  = GrabCellValue( videoMode,  'imageHeightCm' );
+ 		wPix = xDiva.GrabCellValue( videoMode,  'widthPix' );
+		hPix = xDiva.GrabCellValue( videoMode,  'heightPix' );
+		wCm  = xDiva.GrabCellValue( videoMode,  'imageWidthCm' );
+		hCm  = xDiva.GrabCellValue( videoMode,  'imageHeightCm' );
 
 		% Parameter names and their string values must be exactly
 		% the same as defined in MakeDefinitions subfunction
-		viewDistCm	= GrabCellValue( parameters{iS}, 'View Dist (cm)' );
-		sweepType	= GrabCellValue( parameters{iS}, 'Sweep Type' );
+		viewDistCm	= xDiva.GrabCellValue( parameters{iS}, 'View Dist (cm)' );
+		sweepType	= xDiva.GrabCellValue( parameters{iS}, 'Sweep Type' );
 		isSwept		= ~strcmpi( sweepType,'Fixed' );
-		sweepStart	= GrabCellValue( parameters{iS}, 'Sweep Start' );
-		sweepEnd	   = GrabCellValue( parameters{iS}, 'Sweep End' );
+		sweepStart	= xDiva.GrabCellValue( parameters{iS}, 'Sweep Start' );
+		sweepEnd	   = xDiva.GrabCellValue( parameters{iS}, 'Sweep End' );
         %}
         
     end
@@ -986,15 +986,6 @@ function pmf_FastOddball_Numerosity( varargin )
         disp( 'inside TestSubfunction' )
     end
 
-    function rV = GrabCellValue( cellArray, col1string, outputCol )
-        % pull out the column-2 (or other column) value of cell array row
-        % where column-1 matches input string
-        if nargin < 3
-            outputCol = 2;
-        end
-        rV = cellArray{ strcmp( cellArray(:,1), col1string ), outputCol };
-    end
-
     function rV = GetParamArray( aPartName, aParamName )
         % *** Sin Step Types not included in logic below? ***
         
@@ -1013,27 +1004,27 @@ function pmf_FastOddball_Numerosity( varargin )
         % 		'Spat Freq'      'increasing' { { '1' 'Spat Freq (cpd)' } { '2' 'Spat Freq (cpd)' } }
         % 	}
         
-        tNCStps    = GrabCellValue( timing, 'nmbCoreSteps' );
-        tSweepType = GrabCellValue( parameters{iS}, 'Sweep Type' );
+        tNCStps    = xDiva.GrabCellValue( timing, 'nmbCoreSteps' );
+        tSweepType = xDiva.GrabCellValue( parameters{iS}, 'Sweep Type' );
         
         % we need to construct a swept array if any of the {name,value} in definitions{iSweep}{:,3}
         
-        sweepList = GrabCellValue( definitions{iSweep}, tSweepType, 3 );		% { {part,param}, {part,param} ... }
+        sweepList = xDiva.GrabCellValue( definitions{iSweep}, tSweepType, 3 );		% { {part,param}, {part,param} ... }
         
         % check for sweep
         % determine if any definitions{iSweep}{ iRow, { {part,param}... } } match arguments aPartName, aParamName
         partMatch  = ismember( aPartName,  cellfun( @(x)x{1}, sweepList, 'UniformOutput', false ) ); % will be false for "'Fixed' 'constant' {}"
         paramMatch = ismember( aParamName, cellfun( @(x)x{2}, sweepList, 'UniformOutput', false ) );
         if partMatch && paramMatch
-            tSweepStart = GrabCellValue( parameters{iS}, 'Sweep Start' );
-            tSweepEnd   = GrabCellValue( parameters{iS}, 'Sweep End' );
-            if strcmpi( GrabCellValue( parameters{iS}, 'Step Type' ), 'Lin Stair' );
+            tSweepStart = xDiva.GrabCellValue( parameters{iS}, 'Sweep Start' );
+            tSweepEnd   = xDiva.GrabCellValue( parameters{iS}, 'Sweep End' );
+            if strcmpi( xDiva.GrabCellValue( parameters{iS}, 'Step Type' ), 'Lin Stair' );
                 rV = linspace( tSweepStart, tSweepEnd, tNCStps )';
             else
                 rV = logspace( log10(tSweepStart), log10(tSweepEnd), tNCStps )';
             end
         else
-            rV = repmat( GrabCellValue( parameters{eval(['i',aPartName])}, aParamName ), [ tNCStps, 1 ] );
+            rV = repmat( xDiva.GrabCellValue( parameters{eval(['i',aPartName])}, aParamName ), [ tNCStps, 1 ] );
         end
         
     end
