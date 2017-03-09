@@ -61,7 +61,7 @@ function pmf_FastOddball_Numerosity( varargin )
         'Control Range: Lowest'     '5'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
         'Control Range: Highest'	'9'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
         'Control Type'              'Full'        'nominal'	{ 'Full','Limited' }
-        'Image Size'	    1.0				'double'		{}
+        'Stimulus Size (dva x dva)'	    10.0	  'double'		{}
         %            'Use Fill Method'   'No'            'nominal'   { 'Yes', 'No'}
         %			'Scale'				'1x'			'nominal'	{ '1x', '2x' }				% VV's going to build this into xDiva
         % 			'V Size (deg)'		2.0				'double'		{}
@@ -255,6 +255,24 @@ function pmf_FastOddball_Numerosity( varargin )
         else
         end
         
+        % check that stimulus size is not bigger than screen
+        stimSize = xDiva.GrabCellValue( parameters{iB}, 'Stimulus Size (dva x dva)' ) * 60; % stim size in arc minutes
+        [pix2am,maxWidthAM,maxHeightAM] = xDiva.Pix2Arcmin(videoMode,parameters);
+        
+        if stimSize > min(maxWidthAM,maxHeightAM);
+            [newStimSize,stimIdx] = min([maxWidthAM,maxHeightAM]);
+            if stimIdx == 1
+                controlStr = sprintf('Stimulus size %d exceeds the display width.\n',stimSize/60);
+            else
+                controlStr = sprintf('Stimulus size %d exceeds the display height.\n',stimSize/60);
+            end
+            controlStr = sprintf('%sStimulus size adjusted to maximum possible, %.2f.\n',controlStr,newStimSize / 60);
+            validationMessages = xDiva.AppendVMs(validationMessages,controlStr);
+            parValidFlag = false;
+            parameters = xDiva.ReplaceParam(parameters, 'B', 'Stimulus Size (dva x dva)' , newStimSize / 60);
+        else
+        end
+        
         % validate and correct gabor options
         %if strcmp(xDiva.GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes')
         %    gaborOpts = [strcmp(xDiva.GrabCellValue( parameters{i1}, 'Shape' ),'gabor'),strcmp(xDiva.GrabCellValue( parameters{i2}, 'Shape' ),'gabor')];
@@ -335,8 +353,11 @@ function pmf_FastOddball_Numerosity( varargin )
                 nImgRef = nImgRef + nCycle2Prelude * ( frameRatioOddRef - 1 );
             else
             end
-            
+                        
             %% THIS IS  THE NUMEROSITY CODE BEGINS
+                        
+            stimSize = xDiva.GrabCellValue( parameters{iB}, 'Stimulus Size (dva x dva)' ) * 60; % stim size in arc minutes
+            windowSize = floor(stimSize / xDiva.Pix2Arcmin(videoMode,parameters)); % stim size in pixels
             
             numeroOdd = str2double(xDiva.GrabCellValue( parameters{i1}, 'Numerosity' ));
             numeroRef = str2double(xDiva.GrabCellValue( parameters{i2}, 'Numerosity' ));
@@ -347,10 +368,6 @@ function pmf_FastOddball_Numerosity( varargin )
             maxDesired = str2double(xDiva.GrabCellValue( parameters{iB}, 'Control Range: Highest' ));
             fullControl = strcmp(xDiva.GrabCellValue( parameters{iB}, 'Control Type' ),'Full');
             useFill = false; %strcmp(xDiva.GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes');
-            
-            %% Initializations
-            windowSize = round(min([xDiva.GrabCellValue( videoMode,  'widthPix' ),xDiva.GrabCellValue( videoMode,  'heightPix' )])*xDiva.GrabCellValue( parameters{iB}, 'Image Size' ));
-            % Maybe move to the function call? This determines size of image currently 350x350 pixels
             
             % initialize 4D .mat
             img = zeros(windowSize,windowSize,1,nImgRef+nImgOdd,'uint8');
