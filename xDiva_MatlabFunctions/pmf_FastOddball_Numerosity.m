@@ -538,16 +538,20 @@ function pmf_FastOddball_Numerosity( varargin )
             else
             end
             
-            fileName = [];
-            for i=1:length(imgSeq)
-                if imgSeq(i) ~= 0
-                    if isempty(fileName)
-                        fileName = sprintf('~/Desktop/numeroDemo_%s.gif',datestr(now,'yyyymmddHHMMSS'));
-                        imwrite(img(:,:,1,imgSeq(i)),fileName,'gif','LoopCount',Inf,'DelayTime',1/nFrameCycleRef);
-                    else
-                        imwrite(img(:,:,1,imgSeq(i)),fileName,'WriteMode','append','DelayTime',1/nFrameCycleRef);
+            makeGif = false;
+            if makeGif
+                fileName = [];
+                for i=1:length(imgSeq)
+                    if imgSeq(i) ~= 0
+                        if isempty(fileName)
+                            fileName = sprintf('~/Desktop/numeroDemo_%s.gif',datestr(now,'yyyymmddHHMMSS'));
+                            imwrite(img(:,:,1,imgSeq(i)),fileName,'gif','LoopCount',Inf,'DelayTime',1/nFrameCycleRef);
+                        else
+                            imwrite(img(:,:,1,imgSeq(i)),fileName,'WriteMode','append','DelayTime',1/nFrameCycleRef);
+                        end
                     end
                 end
+            else
             end
             
             assignin( 'base', 'output', { true, img, imgSeq } )			% put local var into global space as 'output'
