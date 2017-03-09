@@ -1,4 +1,6 @@
 function pmf_FastOddball_Numerosity( varargin )
+    addpath(genpath('../xDiva_Tools')); % add xDiva tools folder
+
     % _VV_2015_0206 so that 'definitions' are always initialized
     definitions = MakeDefinitions;
     parameters	= {};			% always varargin{2}			initialize here for sceop
@@ -218,7 +220,7 @@ function pmf_FastOddball_Numerosity( varargin )
                 end
             end
             controlStr = sprintf('%s Control Range adjusted to %d-%d.',controlStr,mindesired,maxdesired);
-            validationMessages = AppendVMs(validationMessages,controlStr);
+            validationMessages = xDiva.AppendVMs(validationMessages,controlStr);
             parValidFlag = false;
         else
         end
@@ -236,20 +238,20 @@ function pmf_FastOddball_Numerosity( varargin )
                 maxdesired = max(numero);
             else
             end
-            validationMessages = AppendVMs(validationMessages,controlStr);
+            validationMessages = xDiva.AppendVMs(validationMessages,controlStr);
             parValidFlag = false;
         else
         end
-        CorrectParam('B', 'Control Range: Lowest', num2str(mindesired));
-        CorrectParam('B', 'Control Range: Highest', num2str(maxdesired));
+        parameters = xDiva.ReplaceParam(parameters, 'B', 'Control Range: Lowest', num2str(mindesired));
+        parameters = xDiva.ReplaceParam(parameters, 'B', 'Control Range: Highest', num2str(maxdesired));
         
         if numero(1)/numero(2) < 0.5 && strcmp(GrabCellValue( parameters{iB}, 'Control Type' ),'Full')
             controlStr = sprintf('Oddball %d is less than half of Reference %d.\n',numero(1),numero(2));
             controlStr = sprintf('%sControl Type cannot be "Full" - set to "Limited".\n',controlStr);
             controlStr = sprintf('%sNote that more complete control of non-number parameters can be achieved with different number sets\n',controlStr);
-            validationMessages = AppendVMs(validationMessages,controlStr);
+            validationMessages = xDiva.AppendVMs(validationMessages,controlStr);
             parValidFlag = false;
-            CorrectParam('B', 'Control Type', 'Limited');
+            parameters = xDiva.ReplaceParam(parameters, 'B', 'Control Type', 'Limited');
         else
         end
         
@@ -257,8 +259,8 @@ function pmf_FastOddball_Numerosity( varargin )
         %if strcmp(GrabCellValue( parameters{iB}, 'Use Fill Method' ),'Yes')
         %    gaborOpts = [strcmp(GrabCellValue( parameters{i1}, 'Shape' ),'gabor'),strcmp(GrabCellValue( parameters{i2}, 'Shape' ),'gabor')];
         %    if sum(gaborOpts)
-        %        validationMessages = AppendVMs(validationMessages,'Fill Method cannot be used with Gabors, setting "Use Fill Method" to "No"');
-        %        CorrectParam('B', 'Use Fill Method', 'No');
+        %        validationMessages = xDiva.AppendVMs(validationMessages,'Fill Method cannot be used with Gabors, setting "Use Fill Method" to "No"');
+        %        parameters = xDiva.ReplaceParam(parameters, 'B', 'Use Fill Method', 'No');
         %        parValidFlag = false;
         %    else
         %    end
@@ -266,22 +268,6 @@ function pmf_FastOddball_Numerosity( varargin )
         %end
         assignin( 'base', 'output', { parValidFlag, parameters, validationMessages } )
     end
-
-
-    function CorrectParam( aPart, aParam, aVal )
-        tPartLSS = ismember( { 'S' 'B' '1' '2' }, {aPart} );
-        tParamLSS = ismember( parameters{ tPartLSS }(:,1), {aParam} );
-        parameters{ tPartLSS }{ tParamLSS, 2 } = aVal;
-    end
-
-    function validationMessages = AppendVMs(validationMessages,aStr)
-        if isempty(validationMessages{1})
-            validationMessages{1} = aStr;
-        else
-            validationMessages = cat(1,validationMessages,{aStr});
-        end
-    end
-
 
     function ValidateDefinition
         % Test to make sure that 'definitions' array is correct, i.e.
@@ -318,7 +304,7 @@ function pmf_FastOddball_Numerosity( varargin )
         % 		assignin( 'base', 'images', tD.images );
         % 		assignin( 'base', 'imageSequence', tD.imageSequence );
         
-        try
+        %try
             [ parameters, timing, videoMode, trialNumber ] = deal( varargin{2:5} );
             
             nFrameBin     = GrabCellValue( timing, 'nmbFramesPerBin' );
@@ -486,11 +472,15 @@ function pmf_FastOddball_Numerosity( varargin )
             %% generate the stimuli
             
             for i = 1:(nImgRef + nImgOdd)
-                if i <= nImgRef
-                    img(:,:,:,i) = generate_set(numeroRef,shapeRef,windowSize,rMax,imgAreaList(i),imgSizeList(i),lumIdx,useFill);
-                else
-                    img(:,:,:,i) = generate_set(numeroOdd,shapeOdd,windowSize,rMax,imgAreaList(i),imgSizeList(i),lumIdx,useFill);
+                success = false;
+                while ~success
+                    if i <= nImgRef
+                        [success,tempImg] = generate_set(numeroRef,shapeRef,windowSize,rMax,imgAreaList(i),imgSizeList(i),lumIdx,useFill);
+                    else
+                        [success,tempImg] = generate_set(numeroOdd,shapeOdd,windowSize,rMax,imgAreaList(i),imgSizeList(i),lumIdx,useFill);
+                    end
                 end
+                img(:,:,:,i) = tempImg;
             end
             
             %% COMPUTE IMAGE SEQUENCE
@@ -561,12 +551,12 @@ function pmf_FastOddball_Numerosity( varargin )
             end
             
             assignin( 'base', 'output', { true, img, imgSeq } )			% put local var into global space as 'output'
-        catch ME
-            disp(ME.message)
-            disp(ME.stack(1))
-            % 			disp(ME.stack(end))
-            assignin( 'base', 'output', { false, zeros([1 1 1 1],'uint8'), 1 } )
-        end
+        %catch ME
+        %    disp(ME.message)
+        %    disp(ME.stack(1))
+        %    % 			disp(ME.stack(end))
+        %    assignin( 'base', 'output', { false, zeros([1 1 1 1],'uint8'), 1 } )
+        %end
         
         return
         
@@ -594,7 +584,7 @@ function pmf_FastOddball_Numerosity( varargin )
     end
 
 
-    function img = generate_set(numerosity,shape,windowSize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill)
+    function [success,img] = generate_set(numerosity,shape,windowSize,rmax,totaloccupiedarea,itemsize,lumIdx,useFill)
         %%%% This function is used to create a stimulus for numerosity experiments
         % S. Dehaene Version as of 12 May 2004
         %
@@ -641,6 +631,11 @@ function pmf_FastOddball_Numerosity( varargin )
         % imwrite(img, strcat(outdir,outfile));
         %
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        %%% success is set to false if script encounters catastrophic
+        %%% failure
+        success = true;
+        
         %%% specific maximum number of item locations
         maxnum = numerosity / totaloccupiedarea; %%% prepare a large enough number of locations
         
@@ -845,10 +840,23 @@ function pmf_FastOddball_Numerosity( varargin )
                         tmpImg(tmpImg == 2) = minLum;
                     else
                     end
-                    imgChunk = img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1)));
-                    imgChunk(tmpImg == minLum) = minLum;
-                    imgChunk(tmpImg == maxLum) = maxLum;
-                    img((meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)), (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1))) = imgChunk;
+                    curCoords = [(meshCoords(1)-trueRadius(1)):(meshCoords(1)+trueRadius(1)); (meshCoords(2)-trueRadius(1)):(meshCoords(2)+trueRadius(1))];
+                    if any(curCoords(:) > windowSize) || any(curCoords(:) < 1) % take care of "spill-out"
+                        success = false;
+                        img = [];
+                        return; 
+                    else
+                        imgChunk = img(curCoords(1,:),curCoords(2,:));
+                        if ( unique(imgChunk(tmpImg == minLum)) == lumIdx ) || ( unique(imgChunk(tmpImg == maxLum)) == lumIdx ) % check for overlap
+                            imgChunk(tmpImg == minLum) = minLum;
+                            imgChunk(tmpImg == maxLum) = maxLum;
+                            img(curCoords(1,:),curCoords(2,:)) = imgChunk;
+                        else
+                            success = false;
+                            img = [];
+                            return; 
+                        end
+                    end
                 elseif strcmp(shape,'gabor');
                     gaborSize = (trueRadius(1)*2)+1;
                     gaborSigma = gaborSize/7;
