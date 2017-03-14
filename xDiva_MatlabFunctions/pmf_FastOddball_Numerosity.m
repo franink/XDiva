@@ -415,6 +415,7 @@ function pmf_FastOddball_Numerosity( varargin )
             itemSize = zeros(length(condLabels),3);
             toa = zeros(length(condLabels),3);
             
+            bounds = [mindesired maxdesired]; % to push parameter to a boundary when numeroOdd == numeroRef
             for c = 1:length(condLabels)
                 switch condLabels(c)
                     case 1 % area covaries, size and density does not
@@ -423,11 +424,20 @@ function pmf_FastOddball_Numerosity( varargin )
                         itemSize(c,3) = criticalItemSize;
                         toa(c,1) = criticalToa;
                         toa(c,2) = 1;
-                        toa(c,3) = criticalToa * (numeroOdd/minDesired);
+                        if numeroOdd == numeroRef
+                            toa(c,3) = criticalToa * (bounds(randperm(2,1))/minDesired);
+                        else
+                            toa(c,3) = criticalToa * (numeroOdd/minDesired);
+                        end
+
                     case 2 % size covaries, area and density does not
                         itemSize(c,1) = criticalItemSize;
                         itemSize(c,2) = 1;
-                        itemSize(c,3) = criticalItemSize * (maxDesired/numeroOdd);
+                        if numeroOdd == numeroRef
+                            itemsize(c,3) = criticalItemSize * (maxdesired/bounds(randperm(2,1)));
+                        else
+                            itemSize(c,3) = criticalItemSize * (maxDesired/numeroOdd);
+                        end
                         toa(c,1) = criticalToa * (numeroRef/maxDesired);
                         toa(c,2) = criticalToa * (numeroRef/minDesired);
                         toa(c,3) = criticalToa;
