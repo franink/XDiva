@@ -434,7 +434,7 @@ function pmf_FastOddball_Numerosity( varargin )
                         itemSize(c,1) = criticalItemSize;
                         itemSize(c,2) = 1;
                         if numeroOdd == numeroRef
-                            itemsize(c,3) = criticalItemSize * (maxDesired/bounds(randperm(2,1)));
+                            itemSize(c,3) = criticalItemSize * (maxDesired/bounds(randperm(2,1)));
                         else
                             itemSize(c,3) = criticalItemSize * (maxDesired/numeroOdd);
                         end
