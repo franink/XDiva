@@ -1,5 +1,5 @@
 function pmf_FastOddball_Numerosity( varargin )
-    addpath(genpath('../xDiva_Tools')); % add xDiva tools folder
+    addpath(genpath('./common')); % add xDiva common folder
 
     % _VV_2015_0206 so that 'definitions' are always initialized
     definitions = MakeDefinitions;
