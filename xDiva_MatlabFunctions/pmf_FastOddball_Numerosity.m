@@ -354,7 +354,7 @@ function pmf_FastOddball_Numerosity( varargin )
             else
             end
                         
-            %% THIS IS  THE NUMEROSITY CODE BEGINS
+            %% THIS IS WHERE THE NUMEROSITY CODE BEGINS
                         
             stimSize = xDiva.GrabCellValue( parameters{iB}, 'Stimulus Size (dva x dva)' ) * 60; % stim size in arc minutes
             windowSize = floor(stimSize / xDiva.Pix2Arcmin(videoMode,parameters)); % stim size in pixels
@@ -581,6 +581,14 @@ function pmf_FastOddball_Numerosity( varargin )
                         end
                     end
                 end
+                param_fName = sprintf('~/Desktop/numeroDemo_%s.mat',datestr(now,'yyyymmddHHMMSS'));
+                params.numeroRef = numeroRef;
+                params.shapeRef = shapeRef;
+                params.rMax = rMax;
+                params.Area_params = imgAreaList;
+                params.ItemSize_params = imgSizeList;
+                params.lumIdx = lumIdx;
+                save(param_fName,'params');
             else
             end
             
@@ -747,7 +755,7 @@ function pmf_FastOddball_Numerosity( varargin )
             s=sprintf('only %5.1f percent of the display!',100*totaloccupiedarea);
             disp(s);
             disp('You can either increase the total area, or increase maxnum');
-            error('NO DIPLAY GENERATED');
+            error('NO DISPLAY GENERATED');
         end
         
         %%% scale up the display if necessary
