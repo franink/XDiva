@@ -601,18 +601,29 @@ function pmf_FastOddball_Numerosity( varargin )
                     end
                 end
                 % check if recent params exist
-                param_fName = sprintf('~/Desktop/numeroParams_%s.mat',datestr(now,'yyyymmddHH'));
-                recent_fName = sprintf('~/Desktop/numeroParams_%s.mat',datestr(now-1/24,'yyyymmddHH'));
-                if exist(param_fName, 'file') == 2 
-                    params = load(param_fName);
-                elseif exist(recent_fName, 'file') == 2
-                    params = load(recent_fName);
-                    param_fName = recent_fName; 
+                param_fName = sprintf('~/Desktop/numeroParams_%s.mat',datestr(now,'yyyymmddHHMMSS'));
+                stored_fNames = subfiles(sprintf('~/Desktop/numeroParams_*'),1);
+                recent_fName = stored_fNames{end}; % Grab the most recent file
+                % Check if recent file is within two hours
+                if str2num(param_fName(end-9:end-8))-2 < str2num(recent_fName(end-9:end-8))
+                    params = load(recent_fName,'params');
+                    params = params.params;
+                    param_fName = recent_fName;
                 else
                     params = struct([]);
                 end
-                save('~/Desktop/numeroParamsTEST.mat','tmp_params');
-                params = cat(2,params.params,tmp_params);
+                                
+%                 recent_fName = sprintf('~/Desktop/numeroParams_%s.mat',datestr(now-1/24,'yyyymmddHH'));
+%                 if exist(param_fName, 'file') == 2 
+%                     params = load(param_fName,'params');
+%                 elseif exist(recent_fName, 'file') == 2
+%                     params = load(recent_fName,'params');
+%                     param_fName = recent_fName; 
+%                 else
+%                     params = struct([]);
+%                 end
+                
+                params = cat(2,params,tmp_params);
                 save(param_fName,'params');
             end
             %toc
