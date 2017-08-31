@@ -583,7 +583,7 @@ function pmf_FastOddball_Numerosity( varargin )
 %                 end
 %             end
 
-            tic
+            %tic
             save_params = true;
             if save_params
                     
@@ -602,7 +602,7 @@ function pmf_FastOddball_Numerosity( varargin )
                 end
                 % check if recent params exist
                 param_fName = sprintf('~/Desktop/numeroParams_%s.mat',datestr(now,'yyyymmddHH'));
-                recent_fName = sprintf('~/Desktop/numeroParams_%s.mat',datestr(param_fName-1/24,'yyyymmddHH'));
+                recent_fName = sprintf('~/Desktop/numeroParams_%s.mat',datestr(now-1/24,'yyyymmddHH'));
                 if exist(param_fName, 'file') == 2 
                     params = load(param_fName);
                 elseif exist(recent_fName, 'file') == 2
@@ -611,10 +611,11 @@ function pmf_FastOddball_Numerosity( varargin )
                 else
                     params = struct([]);
                 end
-                params = cat(2,params,tmp_params);
+                save('~/Desktop/numeroParamsTEST.mat','tmp_params');
+                params = cat(2,params.params,tmp_params);
                 save(param_fName,'params');
             end
-            toc
+            %toc
                 
               
                 
