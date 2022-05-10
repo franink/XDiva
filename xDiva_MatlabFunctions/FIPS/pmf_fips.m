@@ -1,4 +1,4 @@
-function pmf_FastOddball_Numerosity( varargin )
+function pmf_fips( varargin )
     addpath(genpath('./common')); % add xDiva common folder
 
     % _VV_2015_0206 so that 'definitions' are always initialized
@@ -55,11 +55,16 @@ function pmf_FastOddball_Numerosity( varargin )
         
         % - Part 'B' definition cell must be defined (at least as an empty array)
         {
-        'ModInfo'			1.0				'double'		{}
-        'Target Gamma'		1.8				'double'		{}
-        'Numerosity covaries with ' 'Random' 'nominal'	{ 'Area', 'Size', 'Density', 'Random'}
-        'Control Range: Lowest'     '5'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
-        'Control Range: Highest'	'9'          'nominal'	{ '1','2','3','4','5','6','7','8','9' }
+        'ModInfo'			      1.0		    'double'	{}
+        'Target Gamma'		      1.8		    'double'	{}
+        'Frame Color'             '0 0 0'       'nominal'	{ '0 0 0', '1 1 1'}
+        'Frame Thickness (dva)'   '0.2'         'double'	{}
+        'Frame Height (dva)'      '5.0'         'double'	{}
+        'Frame Width (dva)'       '5.0'         'double'	{}
+        'Frame Start x (dva)'     '5.0'         'double'    {}
+        'Frame Start y (dva)'     '0'           'double'    {}
+        'Pause Duration (ms)'     '100'         'double'    {}
+        'Motion Duration (ms)'    '1000'        'double'    {}
         'Control Type'              'Full'        'nominal'	{ 'Full','Limited' }
         'Stimulus Size (dva x dva)'	    10.0	  'double'		{}
         %            'Use Fill Method'   'No'            'nominal'   { 'Yes', 'No'}
@@ -67,18 +72,45 @@ function pmf_FastOddball_Numerosity( varargin )
         % 			'V Size (deg)'		2.0				'double'		{}
         }
         
+
+
+% ---------------------------------------
+% FLASHING DOT #1
+% ---------------------------------------
+dot1_color = [0 0 1];   % [RGB]
+dot1_diameter = 25;     % [dots]
+
+dot1_duration = 5;  % [frames]
+dot1_x = 470;       % [unit]
+dot1_y = 275;       % [unit]
+
+% ---------------------------------------
+% FLASHING DOT #2
+% ---------------------------------------
+dot2_color = [1 0 0];   % [RGB]
+dot2_diameter = 25;     % [dots]
+
+dot2_duration = 5;  % [frames]
+dot2_x = 470;       % [unit]
+dot2_y = 225;       % [unit]
+
+        
         
         % - Part '1' 'notused' allows to skip creating GUI element in particular column
         %            'Cycle Frames' has to be 1st row
         
         {
-        'Cycle Frames'		60.0			'integer'	{}
-        % 			'Image Category'	'Faces'		'nominal'	{ 'Faces', 'Objects' }
-        'Contrast (rel)'	1.0			'double'		{}
-        'Randomization'	'Yes'			'nominal'	{ 'Yes', 'No' }
-        'Operation'			'None'		'nominal'	{ 'None', 'H Flip', 'V Flip', 'Invert' }
-        'Numerosity'         '5'        'nominal'	{ '1','2','3','4','5','6','7','8','9' }
-        'Shape'              'circle'   'nominal'	{ 'circle','gabor'} % 'triangle','square'
+        'Cycle Frames'              60.0	    'integer'	{}
+        'Dot 1 Color'               '0 0 1'		'nominal'	{ 'none', '0 0 1', '1 0 0' }
+        'Dot 1 diameter (dva)'      'double'		{ }
+        'Dot 1 duration (ms)'       'double'		{ }
+        'Dot 1 x (dva)'             'double'		{ }
+        'Dot 1 y (dva)'             'double'		{ }
+        'Dot 2 Color'               '1 0 0'		'nominal'	{ 'none', '0 0 1', '1 0 0' }
+        'Dot 2 diameter (dva)'      'double'		{ }
+        'Dot 2 duration (ms)'       'double'		{ }
+        'Dot 2 x (dva)'             'double'		{ }
+        'Dot 2 y (dva)'             'double'		{ }
         }
         
         % - Part '2' ?optional?
